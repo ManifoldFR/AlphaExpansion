@@ -4,6 +4,12 @@ project(AlphaExpansion VERSION 0.1.0)
 include(CTest)
 enable_testing()
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+find_package(Boost REQUIRED)
+# find_package(Armadillo REQUIRED)  # to discuss
+
 add_library(AlphaExpansion AlphaExpansion.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
