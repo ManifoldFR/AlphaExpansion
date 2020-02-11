@@ -13,3 +13,7 @@ cd build/
 cmake ../
 make
 ```
+
+## References
+* https://hal.inria.fr/file/index/docid/617524/filename/sample2e.pdf
+

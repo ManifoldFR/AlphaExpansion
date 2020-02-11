@@ -10,7 +10,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(Boost REQUIRED)
 # find_package(Armadillo REQUIRED)  # to discuss
 
-add_library(AlphaExpansion AlphaExpansion.cpp)
+set(SOURCES
+    AlphaExpansion.cpp
+    AlphaExpansion.h)
+
+add_library(AlphaExpansion ${SOURCES})
+
+add_executable(Main main.cpp)
+target_link_libraries(Main AlphaExpansion)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
