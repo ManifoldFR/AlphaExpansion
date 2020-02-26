@@ -7,8 +7,12 @@ using namespace boost;
 
 
 struct PRPotential {
+    /// Base unary potential at the node, e.g. a probability.
     int potential;
+    /// Excess flow at the node.
     int excess_flow = 0;
+    /// Label d for the PR algorithm.
+    int labeling;
 };
 
 /// Edge property, with both flow value and edge capacity.
@@ -16,6 +20,11 @@ struct EdgeProperties {
     int capacity = 0;
     int flow = 0;
 };
+
+int get_residual(EdgeProperties e) {
+    return e.capacity - e.flow;
+}
+
 
 typedef adjacency_list<vecS, vecS, undirectedS,
                        PRPotential, EdgeProperties> Graph;
