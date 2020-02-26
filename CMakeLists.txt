@@ -10,9 +10,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(Boost REQUIRED)
 # find_package(Armadillo REQUIRED)  # to discuss
 
-set(SOURCES
-    AlphaExpansion.cpp
-    AlphaExpansion.h)
+file(GLOB SOURCES
+    *.cpp
+    AlphaExpansion.h
+    pushrelabel.h
+    graph.h)
 
 add_library(AlphaExpansion ${SOURCES})
 

@@ -16,4 +16,4 @@ make
 
 ## References
 * https://hal.inria.fr/file/index/docid/617524/filename/sample2e.pdf
-
+* http://akira.ruc.dk/~keld/teaching/algoritmedesign_f03/Artikler/08/Goldberg88.pdf 
