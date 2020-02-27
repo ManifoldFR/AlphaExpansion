@@ -7,8 +7,6 @@ using namespace boost;
 
 
 struct PRPotential {
-    /// Base unary potential at the node, e.g. a probability.
-    int potential;
     /// Excess flow at the node.
     int excess_flow = 0;
     /// Label d for the PR algorithm.

@@ -40,7 +40,6 @@ int main() {
 
     std::ofstream dotfile("mygraph.dot");
     dynamic_properties dp;
-    dp.property("potential", get(&PRPotential::potential, g));
     dp.property("capacity", get(&EdgeProperties::capacity, g));
     dp.property("flow", get(&EdgeProperties::flow, g));
     dp.property("node_id", get(boost::vertex_index, g));
