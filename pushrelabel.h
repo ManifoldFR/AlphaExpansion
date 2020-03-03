@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <limits.h>
 
+/// Definition of class Graph
 #include "graph.h"
 
 namespace {
@@ -95,3 +96,18 @@ void init_labels_naive(Graph& g, Graph::vertex_descriptor src, Graph::vertex_des
 
 }
 
+
+/// Applies push relabel for a given graph to compute maximum flow
+bool push_relabel(Graph& g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink) {
+	init_preflow(g, src, sink);
+	
+	// Main loop goes here :
+	// While queue not empty, pop and push / relabel
+
+	// Returns True if finished correctly, False otherwise 
+}
+
+/// Using the maximum flow, computes the min cut and assign a class to each vertex
+void compute_min_cut(Graph& g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink) {
+
+}
