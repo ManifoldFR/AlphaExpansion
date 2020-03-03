@@ -6,11 +6,15 @@
 using namespace boost;
 
 
+
+/// Node properties for the PR algorithm
 struct PRPotential {
     /// Excess flow at the node.
     int excess_flow = 0;
-    /// Label d for the PR algorithm.
-    int labeling;
+    /// Label d for the PR algorithm : height of the node.
+    int labeling; 
+    /// Class of the node after min cut : 0 if in class of source, 1 otherwise
+    int cut_class;
 };
 
 /// Edge property, with both flow value and edge capacity.
@@ -19,14 +23,14 @@ struct EdgeProperties {
     int flow = 0;
 };
 
+/// 
+
 int get_residual(EdgeProperties e) {
     return e.capacity - e.flow;
 }
 
-
 typedef adjacency_list<vecS, vecS, undirectedS,
                        PRPotential, EdgeProperties> Graph;
-
 
 typedef property_map<Graph, PRPotential> vertex_prop_map;
 typedef property_map<Graph, EdgeProperties> edge_prop_map;
