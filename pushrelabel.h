@@ -5,9 +5,11 @@
  * 
  */
 
-#include <iostream>
 #include <assert.h>
+#include <iostream>
+#include <iterator>
 #include <limits.h>
+#include <queue>
 
 /// Definition of class Graph
 #include "graph.h"
@@ -25,6 +27,16 @@ inline bool is_active(
     return not_src_sink && finite && has_excess_flow;
 }
 
+inline bool can_push(
+    Graph& g,
+    Graph::vertex_descriptor v,
+    Graph::vertex_descriptor w) {
+        auto e = edge(v, w, g).first;
+        return (g[v].labeling == g[w].labeling + 1) && (g[e].capacity - g[e].flow  > 0);
+    }
+
+// TODO : Function to identify to which neighbor we must push
+
 /// Push operation on the graph.
 void push(
     Graph& g, 
@@ -33,13 +45,9 @@ void push(
     Graph::vertex_descriptor src,
     Graph::vertex_descriptor sink)
 {
-    assert(is_active(g, v, src, sink));
-    assert(g[v].labeling == (g[w].labeling + 1));
-
     auto e = edge(v, w, g).first;
 
-    int residual = g[e].flow - g[e].capacity;
-    assert(residual > 0);
+    int residual = g[e].capacity - g[e].flow;
 
     int delta = std::min(g[v].excess_flow, residual);
 
@@ -59,14 +67,14 @@ void relabel(
     Graph::vertex_descriptor src,
     Graph::vertex_descriptor sink)
 {
-    assert(is_active(g, v, src, sink));
     // iterate over the edges
     auto wi = adjacent_vertices(v, g);
 
-    g[v].labeling = std::numeric_limits<int>::infinity();
+    // can't label inf here so we take 2*|V| (should not be attainable I think) 
+    g[v].labeling = 2 * size(vertices(g));
 
     for (auto& wp=wi.first; wp!=wi.second; wp++) {
-        size_t w = *wp;
+        auto w = *wp;
         auto e = edge(v, w, g).first;
         bool is_residual_edge = (get_residual(g[e]) > 0);
         if (is_residual_edge) {
@@ -78,14 +86,22 @@ void relabel(
 
 /// Initialize the graph data with preflows.
 void init_preflow(Graph& g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink) {
-
+    auto neighs = adjacent_vertices(src, g);
+    for (auto &it = neighs.first; it != neighs.second; it++) {
+        auto e = edge(src, *it, g).first;
+        auto rev_e = edge(*it, src, g).first;
+        g[e].flow = g[e].capacity;
+        g[rev_e].flow = -g[e].capacity;
+        
+        g[*it].excess_flow = g[e].flow;
+    }
 }
 
 /// Naive initial labelling strategy.
 void init_labels_naive(Graph& g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink) {
-    g[src].labeling = 0;
-
     auto vi = vertices(g);
+
+    g[src].labeling = size(vi);
 
     for (auto& v = vi.first; v != vi.second; v++) {
         if (*v != src) {
@@ -96,18 +112,71 @@ void init_labels_naive(Graph& g, Graph::vertex_descriptor src, Graph::vertex_des
 
 }
 
-
 /// Applies push relabel for a given graph to compute maximum flow
 bool push_relabel(Graph& g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink) {
+	// Push flow from source to its neighbors
 	init_preflow(g, src, sink);
+    // All heights are 0 initially except source (card(V))
+	init_labels_naive(g, src, sink);	
 	
-	// Main loop goes here :
-	// While queue not empty, pop and push / relabel
+	// Need a queue to store active vertices 
+	typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+	std::queue<Vertex> q;
+    // Push neighbors of source into queue
+    auto src_neighs = boost::adjacent_vertices(src, g);
+    for(auto &it = src_neighs.first; it != src_neighs.second; it++) {
+        q.push(*it);
+    }
 
-	// Returns True if finished correctly, False otherwise 
+    bool continuer = true;
+
+	// Loop invariant : any vertex that goes in the queue remains active until pushed out
+    while (continuer) {
+		// Pop active vertex from queue
+        Graph::vertex_descriptor current = q.front();
+        
+        auto current_neighs = boost::adjacent_vertices(current, g);
+        bool pushed = false;
+        // loop over neighbors and find if one can be pushed
+        for (auto &it = current_neighs.first; it != current_neighs.second; it++) {
+            auto e = edge(current, *it, g).first;
+            if (can_push(g, current, *it)){
+                pushed = true;
+                bool was_in_queue = is_active(g, *it, src, sink);
+                push(g, current, *it, src, sink);
+                // We never push the sink or the source into the queue
+                if (!was_in_queue && is_active(g, *it, src, sink))
+                    q.push(*it);
+                break;
+            }
+        }
+
+        // if not pushed, we have to relabel the vertex
+        if (!pushed) {
+            relabel(g, current, src, sink);
+        }
+
+        // Check if current vertex is no longer active
+        if (!is_active(g, current, src, sink)) {
+            q.pop();
+        }
+
+        // quit if queue is empty
+        continuer = !q.empty();
+
+        int foo;
+        std::cin >> foo;
+    }
+
+    return true;
 }
 
 /// Using the maximum flow, computes the min cut and assign a class to each vertex
-void compute_min_cut(Graph& g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink) {
+void max_flow_to_min_cut(Graph& g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink){
+
+}
+
+// Calls push_relabel and max_flow_to_min_cut to compute min cut from scratch
+void compute_min_cut(Graph& g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink) {
 
 }
