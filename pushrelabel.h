@@ -119,6 +119,26 @@ void init_labels_naive(Graph &g, Graph::vertex_descriptor src, Graph::vertex_des
     }
 }
 
+/// Smarter initial labelling strategy.
+/// See Goldberg (1988), p. 926.
+/// The idea is to set d(v) = min(d_{G_f}(v,t), d_{G_f}(v,s) + n) for all vertices v
+/// where d_{G_f} is the shortest-path metric inside of the residual graph
+// TODO: FINISH THIS
+void init_labels_smart(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+{
+    auto vi = vertices(g);  // vertex iterator
+
+    // STEP ONE DEFINE THE shortest-paths in the residual graph
+
+
+    // STEP TWO ASSEMBLE THE LABELS
+
+    for (auto &v = vi.first; v != vi.second; v++)
+    {
+
+    }
+}
+
 /// Applies push relabel for a given graph to compute maximum flow
 bool push_relabel(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
 {
