@@ -30,6 +30,10 @@ int get_residual(EdgeProperties e) {
 typedef adjacency_list<vecS, vecS, directedS,
                        PRPotential, EdgeProperties> Graph;
 
+void symmetrize_graph() {
+    
+}
+
 typedef property_map<Graph, PRPotential> vertex_prop_map;
 typedef property_map<Graph, EdgeProperties> edge_prop_map;
 
