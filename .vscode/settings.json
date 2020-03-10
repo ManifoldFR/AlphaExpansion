@@ -58,6 +58,10 @@
         "typeindex": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "bit": "cpp"
+        "bit": "cpp",
+        "csignal": "cpp",
+        "strstream": "cpp",
+        "iomanip": "cpp",
+        "cfenv": "cpp"
     }
 }
