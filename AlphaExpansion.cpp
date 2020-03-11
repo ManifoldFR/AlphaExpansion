@@ -11,7 +11,7 @@ using namespace std;
 #include "pushrelabel.h"
 #include "AlphaExpansion.h"
 
-vector<int> buidlLabels(vector<vector<int>> unaryPotential){
+vector<int> buildLabels(vector<vector<int>> unaryPotential){
     //Graph Constructor to use at the begining
     vector<int> labels;
 
@@ -45,10 +45,6 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
             boost::add_edge(idxT, idxS, EdgeProperties{0,0}, G);
         }
     }
-
-    int numberNodes = labels.size();
-    int sink = numberNodes + 1;
-    int source = numberNodes +2;
 
     for (int i=0; i<unaryPotential.size(); i++){
         if (labels.at(i) == label){
@@ -131,7 +127,7 @@ pair<int,vector<int>> applyAlphaExpansion(vector<vector<int>> unaryPotential, ve
 
     pair <int,vector<int>>  result;
 
-    vector<int> labels = buidlLabels(unaryPotential);
+    vector<int> labels = buildLabels(unaryPotential);
     bool modified = true;
     while(modified){
         modified = expansion(labels, unaryPotential, edges);
