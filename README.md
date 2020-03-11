@@ -16,12 +16,17 @@ or if you are using the command line on Linux:
 ./build.sh
 ```
 
-<!-- ## Use
+## Use
 
 Run the executable from the command line with
 ```bash
-./main data.txt
-``` -->
+./Main path/to/folder
+```
+where the folder should contain the node potentials and edges as
+```
+nodes.txt
+edges.txt
+```
 
 
 

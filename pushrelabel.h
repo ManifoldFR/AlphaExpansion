@@ -10,6 +10,8 @@
 #include <iterator>
 #include <limits.h>
 #include <queue>
+#include <boost/graph/visitors.hpp>
+#include <boost/graph/breadth_first_search.hpp>
 
 /// Definition of class Graph
 #include "graph.h"
@@ -116,6 +118,30 @@ void init_labels_naive(Graph &g, Graph::vertex_descriptor src, Graph::vertex_des
         {
             g[*v].labeling = 0;
         }
+    }
+}
+
+/// Smarter initial labelling strategy.
+/// See Goldberg (1988), p. 926.
+/// The idea is to set d(v) = min(d_{G_f}(v,t), d_{G_f}(v,s) + n) for all vertices v
+/// where d_{G_f} is the shortest-path metric inside of the residual graph
+// TODO: FINISH THIS
+void init_labels_smart(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+{
+    auto vi = vertices(g);  // vertex iterator
+
+
+
+    // STEP ONE define shortest-paths in the residual graph
+
+    
+
+
+    // STEP TWO assemble the labels
+
+    for (auto &v = vi.first; v != vi.second; v++)
+    {
+
     }
 }
 

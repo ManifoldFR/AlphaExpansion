@@ -8,10 +8,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(Boost REQUIRED)
-# find_package(Armadillo REQUIRED)  # to discuss
 
 file(GLOB SOURCES
-    *.cpp
+    AlphaExpansion.cpp
     AlphaExpansion.h
     pushrelabel.h
     graph.h)
@@ -19,7 +18,10 @@ file(GLOB SOURCES
 add_library(AlphaExpansion ${SOURCES})
 
 add_executable(Main main.cpp)
+add_executable(SmokeTest test.cpp)
+add_test(smoketest SmokeTest)
 target_link_libraries(Main AlphaExpansion)
+target_link_libraries(SmokeTest AlphaExpansion)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
