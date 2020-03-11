@@ -1,54 +1,73 @@
+#include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
 #include <iostream>
+#include <time.h>
+#include <algorithm>
+#include "AlphaExpansion.h"
+#include <vector>
 
-#include <boost/graph/graphviz.hpp>
 
-#include "graph.h"
-#include "pushrelabel.h"
+////////////////////////////////////////////////////////////////////////////////
+/**
+ * argv[0] nodes/edges folder path
+ * 
+ */
+int main(int argc, char **argv)
+{
+	using namespace std;
+	string folder_path(argv[1]);
+	cout << "Looking for data files in " << folder_path << endl;
+	cout << "Computing alpha expansion..." << endl;
 
-Graph test_pr() {
-    /// Graph build : cf Cormen book page 727
-    size_t num_vertices = 6; 
-    Graph g(num_vertices);
+	auto nodes_file = folder_path + "/nodes.txt";
+	cout << nodes_file << endl;
 
-    add_edge(0, 1, {16, 0}, g);
-    add_edge(0, 2, {13, 0}, g);
-    add_edge(1, 3, {12, 0}, g);
-    add_edge(2, 1, {4, 0}, g);
-    add_edge(2, 4, {14, 0}, g);
-    add_edge(3, 2, {9, 0}, g);
-    add_edge(3, 5, {20, 0}, g);
-    add_edge(4, 3, {7, 0}, g);
-    add_edge(4, 5, {4, 0}, g);
+	//get nodes
+	ifstream infile2(nodes_file);
+	int a,b,c,d,e,f ;
+	vector<vector<int>> probabilites;
+	while (infile2 >> a >> b >> c >> d >> e >> f)
+	{
+        vector<int> local_proba;
+        local_proba.push_back(-a);
+        local_proba.push_back(-b);
+        local_proba.push_back(-c);
+        local_proba.push_back(-d);
+        local_proba.push_back(-e);
+        local_proba.push_back(-f);
+        probabilites.push_back(local_proba);
+	}
 
-    // caution : need to symmetrize the graph
-    auto es = edges(g);
-    for (auto &it = es.first; it != es.second; it++){
-        auto v(source(*it, g)), w(target(*it, g));
-        if (!edge(w, v, g).second)
-            add_edge(w, v, {0, 0}, g);
-    }
+	auto edge_file = folder_path + "/edges.txt";
 
-    return g;
+	//get edges
+
+    vector<vector<int>> edges;
+	ifstream infile4(edge_file);
+	int a2,b2 ;
+	while (infile4 >> a2 >> b2)
+	{
+        vector<int> local_edge;
+        local_edge.push_back(a2);
+        local_edge.push_back(b2);
+        edges.push_back(local_edge);
+	}
+
+	auto label_file = folder_path + "/labels.txt";
+	//Will pretend our graph is general, and set up a neighborhood system
+	// which actually is a grid. Also uses spatially varying terms
+    pair<int,vector<int>> results = applyAlphaExpansion(probabilites, edges);
+    vector<int> result = get<1>(results);
+	ofstream o(label_file);
+	for(int i = 0; i<result.size();i++){
+		o<<result[i]+1<<"\n";
+	}
+	printf("Done.");
+	return 0;
 }
 
-
-int main() {
-    auto g = test_pr();
-
-    std::cout << "Finished building graph" << std::endl; 
-
-    compute_min_cut(g, 0, 5);
-
-    auto vs = vertices(g);
-    for (auto &it = vs.first; it != vs.second; it++) {
-        std::cout << "Vertex " << *it << " has class " << g[*it].cut_class << std::endl;
-    }
-
-    auto edges = boost::edges(g);
-    for (auto &it = edges.first; it != edges.second; it++) {
-        std::cout << source(*it, g) << " to " << target(*it, g) << " : " << g[*it].flow << " / " << g[*it].capacity << std::endl;
-    }
-
-    return 0;
-}
+/////////////////////////////////////////////////////////////////////////////////
 

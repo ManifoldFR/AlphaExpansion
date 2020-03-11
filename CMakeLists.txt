@@ -17,8 +17,9 @@ file(GLOB SOURCES
 
 add_library(AlphaExpansion ${SOURCES})
 
-add_executable(Main autre_main.cpp)
-add_executable(SmokeTest main.cpp)
+add_executable(Main main.cpp)
+add_executable(SmokeTest test.cpp)
+add_test(smoketest SmokeTest)
 target_link_libraries(Main AlphaExpansion)
 target_link_libraries(SmokeTest AlphaExpansion)
 
