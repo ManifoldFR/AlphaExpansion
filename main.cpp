@@ -5,46 +5,49 @@
 #include "graph.h"
 #include "pushrelabel.h"
 
-
-Graph test_graph() {
-    size_t num_vertices = 11; 
+Graph test_pr() {
+    /// Graph build : cf Cormen book page 727
+    size_t num_vertices = 6; 
     Graph g(num_vertices);
 
-    add_edge(9, 0, g);
-    for (size_t i = 0; i < 9; i++)
-        add_edge(i, i+1, g);
+    add_edge(0, 1, {16, 0}, g);
+    add_edge(0, 2, {13, 0}, g);
+    add_edge(1, 3, {12, 0}, g);
+    add_edge(2, 1, {4, 0}, g);
+    add_edge(2, 4, {14, 0}, g);
+    add_edge(3, 2, {9, 0}, g);
+    add_edge(3, 5, {20, 0}, g);
+    add_edge(4, 3, {7, 0}, g);
+    add_edge(4, 5, {4, 0}, g);
 
-    add_edge(0, 10, g);
+    // caution : need to symmetrize the graph
+    auto es = edges(g);
+    for (auto &it = es.first; it != es.second; it++){
+        auto v(source(*it, g)), w(target(*it, g));
+        if (!edge(w, v, g).second)
+            add_edge(w, v, {0, 0}, g);
+    }
 
     return g;
 }
 
 
 int main() {
-    std::cout << "Hello" << std::endl;
+    auto g = test_pr();
 
-    auto g = test_graph();
+    std::cout << "Finished building graph" << std::endl; 
 
-    auto vi = vertices(g);
-    for (auto &v = vi.first; v != vi.second; v++)
-        std::cout << *v << std::endl;
+    compute_min_cut(g, 0, 5);
 
-
-    auto zero_neighbors = adjacent_vertices(0, g);
-
-    for (auto &vp = zero_neighbors.first; vp!=zero_neighbors.second; vp++) {
-        auto vtx = *vp;
-        std::cout << vtx << " ";
+    auto vs = vertices(g);
+    for (auto &it = vs.first; it != vs.second; it++) {
+        std::cout << "Vertex " << *it << " has class " << g[*it].cut_class << std::endl;
     }
 
-
-    std::ofstream dotfile("mygraph.dot");
-    dynamic_properties dp;
-    dp.property("capacity", get(&EdgeProperties::capacity, g));
-    dp.property("flow", get(&EdgeProperties::flow, g));
-    dp.property("node_id", get(boost::vertex_index, g));
-
-    write_graphviz_dp(dotfile, g, dp);
+    auto edges = boost::edges(g);
+    for (auto &it = edges.first; it != edges.second; it++) {
+        std::cout << source(*it, g) << " to " << target(*it, g) << " : " << g[*it].flow << " / " << g[*it].capacity << std::endl;
+    }
 
     return 0;
 }
