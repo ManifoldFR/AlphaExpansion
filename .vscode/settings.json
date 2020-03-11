@@ -62,6 +62,7 @@
         "csignal": "cpp",
         "strstream": "cpp",
         "iomanip": "cpp",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "*.ipp": "cpp"
     }
 }
