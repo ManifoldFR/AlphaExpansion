@@ -1,8 +1,7 @@
 #include <iostream>
 #include <utility>
 #include <vector>
-#include<algorithm>
-using namespace std;
+#include <algorithm>
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -11,7 +10,10 @@ using namespace std;
 #include "pushrelabel.h"
 #include "AlphaExpansion.h"
 
-vector<int> buildLabels(vector<vector<int>> unaryPotential){
+using namespace std;
+
+
+vector<int> buildLabels(vector<vector<int>> unaryPotential) {
     //Graph Constructor to use at the begining
     vector<int> labels;
 
@@ -91,12 +93,9 @@ bool expansion(vector<int> labels, vector<vector<int>> unaryPotential, vector<ve
     vector<int> bestLabels;
     Graph G; 
 
-    int numberNodes = unaryPotential.size();
-    int sink = numberNodes + 1;
-    int source = numberNodes +2;
-
-    Graph::vertex_descriptor src;
-    Graph::vertex_descriptor sk;
+    size_t numberNodes = unaryPotential.size();
+    Graph::vertex_descriptor sk = numberNodes + 1;
+    Graph::vertex_descriptor src = numberNodes +2;
 
     for (int i=0; i<unaryPotential[0].size(); i++){
         int localLabel = i;

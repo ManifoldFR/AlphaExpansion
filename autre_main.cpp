@@ -5,10 +5,10 @@
 #include <string.h>
 #include <iostream>
 #include <time.h>
+#include <algorithm>
 #include "AlphaExpansion.h"
 #include <vector>
 
-using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
@@ -17,15 +17,16 @@ using namespace std;
  */
 int main(int argc, char **argv)
 {
-	std::string folder_path(argv[1]);
-	std::cout << "Looking for data files in " << folder_path << std::endl;
-	std::cout << "Computing alpha expansion..." << std::endl;
+	using namespace std;
+	string folder_path(argv[1]);
+	cout << "Looking for data files in " << folder_path << endl;
+	cout << "Computing alpha expansion..." << endl;
 
 	auto nodes_file = folder_path + "/nodes.txt";
-	std::cout << nodes_file << std::endl;
+	cout << nodes_file << endl;
 
 	//get nodes
-	std::ifstream infile2(nodes_file);
+	ifstream infile2(nodes_file);
 	int a,b,c,d,e,f ;
 	vector<vector<int>> probabilites;
 	while (infile2 >> a >> b >> c >> d >> e >> f)
@@ -45,7 +46,7 @@ int main(int argc, char **argv)
 	//get edges
 
     vector<vector<int>> edges;
-	std::ifstream infile4(edge_file);
+	ifstream infile4(edge_file);
 	int a2,b2 ;
 	while (infile4 >> a2 >> b2)
 	{
@@ -60,7 +61,7 @@ int main(int argc, char **argv)
 	// which actually is a grid. Also uses spatially varying terms
     pair<int,vector<int>> results = applyAlphaExpansion(probabilites, edges);
     vector<int> result = get<1>(results);
-	std::ofstream o(label_file);
+	ofstream o(label_file);
 	for(int i = 0; i<result.size();i++){
 		o<<result[i]+1<<"\n";
 	}
