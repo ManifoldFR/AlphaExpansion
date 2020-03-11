@@ -82,6 +82,16 @@ void setLabel(vector<int> oldLabels, vector<int> newLabels){
 
 int computeEnergy(vector<int> labels, vector<vector<int>> unaryPotential, vector<vector<int>> edges){
     int energy = 0;
+    for (int i =0; i<labels.size(); i++){
+        energy = energy + unaryPotential[i].at(labels[i]);
+    }
+    for (int j=0; j<edges.size(); j++){
+        int idxS = edges[j].at(0);
+        int idxT = edges[j].at(1);
+        if (labels[idxS] == labels[idxT]){
+            energy = energy + 100;
+        }      
+    }
     return energy;
 }
 
