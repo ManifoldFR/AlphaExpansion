@@ -3,3 +3,4 @@
 *.exe
 *.swp
 build/
+*.json
