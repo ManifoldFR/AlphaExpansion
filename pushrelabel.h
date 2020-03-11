@@ -10,6 +10,8 @@
 #include <iterator>
 #include <limits.h>
 #include <queue>
+#include <boost/graph/visitors.hpp>
+#include <boost/graph/breadth_first_search.hpp>
 
 /// Definition of class Graph
 #include "graph.h"
@@ -128,10 +130,14 @@ void init_labels_smart(Graph &g, Graph::vertex_descriptor src, Graph::vertex_des
 {
     auto vi = vertices(g);  // vertex iterator
 
-    // STEP ONE DEFINE THE shortest-paths in the residual graph
 
 
-    // STEP TWO ASSEMBLE THE LABELS
+    // STEP ONE define shortest-paths in the residual graph
+
+    
+
+
+    // STEP TWO assemble the labels
 
     for (auto &v = vi.first; v != vi.second; v++)
     {
