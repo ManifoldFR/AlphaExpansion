@@ -52,11 +52,15 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
     for (int i=0; i<unaryPotential.size(); i++){
         if (labels.at(i) == label){
             boost::add_edge(i, sink, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
+            boost::add_edge(sink, i, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
             boost::add_edge(i, source, EdgeProperties{100 - unaryPotential[i].at(labels[i]),0}, G);
+            boost::add_edge(source, i, EdgeProperties{100 - unaryPotential[i].at(labels[i]),0}, G);
         }
         else{
             boost::add_edge(i, sink, EdgeProperties{100 - unaryPotential[i].at(labels[i]),0}, G);
+            boost::add_edge(sink, i, EdgeProperties{100 - unaryPotential[i].at(labels[i]),0}, G);
             boost::add_edge(i, source, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
+            boost::add_edge(source, i, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
         }
 
     }
