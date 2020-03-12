@@ -20,7 +20,6 @@ int main(int argc, char **argv)
 	using namespace std;
 	string folder_path(argv[1]);
 	cout << "Looking for data files in " << folder_path << endl;
-	cout << "Computing alpha expansion..." << endl;
 
 	auto nodes_file = folder_path + "/nodes.txt";
 	cout << nodes_file << endl;
@@ -32,16 +31,17 @@ int main(int argc, char **argv)
 	while (infile2 >> a >> b >> c >> d >> e >> f)
 	{
         vector<int> local_proba;
-        local_proba.push_back(-a);
-        local_proba.push_back(-b);
-        local_proba.push_back(-c);
-        local_proba.push_back(-d);
-        local_proba.push_back(-e);
-        local_proba.push_back(-f);
+        local_proba.push_back(100-a);
+        local_proba.push_back(100-b);
+        local_proba.push_back(100-c);
+        local_proba.push_back(100-d);
+        local_proba.push_back(100-e);
+        local_proba.push_back(100-f);
         probabilites.push_back(local_proba);
 	}
 
 	auto edge_file = folder_path + "/edges.txt";
+	cout << edge_file << endl;
 
 	//get edges
 
@@ -59,6 +59,7 @@ int main(int argc, char **argv)
 	auto label_file = folder_path + "/labels.txt";
 	//Will pretend our graph is general, and set up a neighborhood system
 	// which actually is a grid. Also uses spatially varying terms
+	cout << "Start alpha expansion" << endl;
     pair<int,vector<int>> results = applyAlphaExpansion(probabilites, edges);
     vector<int> result = get<1>(results);
 	ofstream o(label_file);

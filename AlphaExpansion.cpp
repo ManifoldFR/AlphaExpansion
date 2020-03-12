@@ -2,6 +2,8 @@
 #include <utility>
 #include <vector>
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -19,9 +21,8 @@ vector<int> buildLabels(vector<vector<int>> unaryPotential) {
 
     //Computations of the initial labels
     for (int i=0; i<unaryPotential.size(); i++){
-        labels.push_back(*max_element(unaryPotential[i].rbegin(), unaryPotential[i].rend()));
+        labels.push_back(distance(unaryPotential[i].begin(), min_element(unaryPotential[i].begin(), unaryPotential[i].end())));
     }
-
     return labels;
 }
 
@@ -51,10 +52,10 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
     for (int i=0; i<unaryPotential.size(); i++){
         if (labels.at(i) == label){
             boost::add_edge(i, sink, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
-            boost::add_edge(i, source, EdgeProperties{-100 - unaryPotential[i].at(labels[i]),0}, G);
+            boost::add_edge(i, source, EdgeProperties{100 - unaryPotential[i].at(labels[i]),0}, G);
         }
         else{
-            boost::add_edge(i, sink, EdgeProperties{-100 - unaryPotential[i].at(labels[i]),0}, G);
+            boost::add_edge(i, sink, EdgeProperties{100 - unaryPotential[i].at(labels[i]),0}, G);
             boost::add_edge(i, source, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
         }
 
@@ -108,8 +109,10 @@ bool expansion(vector<int> labels, vector<vector<int>> unaryPotential, vector<ve
     Graph::vertex_descriptor src = numberNodes +2;
 
     for (int i=0; i<unaryPotential[0].size(); i++){
+        cout << "Local Graph about to be built" << endl;
         int localLabel = i;
         G = buildGraph(localLabel, labels, unaryPotential, edges);
+        cout << "Local Graph built" << endl;
         compute_min_cut(G, src, sk);
 
         int graphEnergy = computeEnergy(labels, unaryPotential, edges);
@@ -137,6 +140,7 @@ pair<int,vector<int>> applyAlphaExpansion(vector<vector<int>> unaryPotential, ve
     pair <int,vector<int>>  result;
 
     vector<int> labels = buildLabels(unaryPotential);
+    cout << "Pre label computed" <<endl;
     bool modified = true;
     while(modified){
         modified = expansion(labels, unaryPotential, edges);
