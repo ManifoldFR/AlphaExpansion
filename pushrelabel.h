@@ -93,20 +93,22 @@ void relabel(
 /// Initialize the graph data with preflows.
 void init_preflow(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
 {
-    auto neighs = adjacent_vertices(src, g);
-    for (auto &it = neighs.first; it != neighs.second; it++)
+    auto push_preflow = [&g, src](Graph::vertex_descriptor neighbor)
     {
-        auto e = edge(src, *it, g).first;
-        auto rev_e = edge(*it, src, g).first;
+        auto e = edge(src, neighbor, g).first;
+        auto rev_e = edge(neighbor, src, g).first;
         g[e].flow = g[e].capacity;
         g[rev_e].flow = -g[e].capacity;
 
-        g[*it].excess_flow = g[e].flow;
-    }
+        g[neighbor].excess_flow = g[e].flow;
+    };
+
+    auto neighs = adjacent_vertices(src, g);
+    for_each(neighs.first, neighs.second, push_preflow);
 }
 
 /// Naive initial labelling strategy.
-void init_labels_naive(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+void init_labels_naive(Graph &g, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sink)
 {
     auto vi = vertices(g);
 
@@ -126,7 +128,7 @@ void init_labels_naive(Graph &g, Graph::vertex_descriptor src, Graph::vertex_des
 /// The idea is to set d(v) = min(d_{G_f}(v,t), d_{G_f}(v,s) + n) for all vertices v
 /// where d_{G_f} is the shortest-path metric inside of the residual graph
 // TODO: FINISH THIS
-void init_labels_smart(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+void init_labels_smart(Graph &g, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sink)
 {
     auto vi = vertices(g);  // vertex iterator
 
@@ -146,7 +148,7 @@ void init_labels_smart(Graph &g, Graph::vertex_descriptor src, Graph::vertex_des
 }
 
 /// Applies push relabel for a given graph to compute maximum flow
-bool push_relabel(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sink)
 {
 
     // Push flow from source to its neighbors
@@ -166,6 +168,8 @@ bool push_relabel(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descript
 
     bool continuer = true;
 
+    int push_count(0), relabel_count(0);
+
     // Loop invariant : any vertex that goes in the queue remains active until pushed out
     while (continuer)
     {
@@ -181,6 +185,7 @@ bool push_relabel(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descript
             if (can_push(g, current, *it))
             {
                 pushed = true;
+                push_count ++;
                 bool was_in_queue = is_active(g, *it, src, sink);
                 push(g, current, *it, src, sink);
                 // We never push the sink or the source into the queue
@@ -194,6 +199,7 @@ bool push_relabel(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descript
         if (!pushed)
         {
             relabel(g, current, src, sink);
+            relabel_count++;
         }
 
         // Check if current vertex is no longer active
@@ -205,6 +211,8 @@ bool push_relabel(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descript
         // quit if queue is empty
         continuer = !q.empty();
     }
+
+    std::cout << "Number of push and relabel done : " << push_count << " & " << relabel_count << std::endl;
 
     return true;
 }
