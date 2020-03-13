@@ -7,6 +7,7 @@
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include<boost/range/numeric.hpp>
 
 #include "graph.h"
 #include "pushrelabel.h"
@@ -52,14 +53,14 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
     for (int i=0; i<unaryPotential.size(); i++){
         if (labels.at(i) == label){
             boost::add_edge(i, sink, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
-            boost::add_edge(sink, i, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
-            boost::add_edge(i, source, EdgeProperties{100 - unaryPotential[i].at(labels[i]),0}, G);
-            boost::add_edge(source, i, EdgeProperties{100 - unaryPotential[i].at(labels[i]),0}, G);
+            boost::add_edge(sink, i, EdgeProperties{0,0}, G);
+            boost::add_edge(i, source, EdgeProperties{0,0}, G);
+            boost::add_edge(source, i, EdgeProperties{boost::accumulate(unaryPotential[i], 0) - unaryPotential[i].at(labels[i]),0}, G);
         }
         else{
-            boost::add_edge(i, sink, EdgeProperties{100 - unaryPotential[i].at(labels[i]),0}, G);
-            boost::add_edge(sink, i, EdgeProperties{100 - unaryPotential[i].at(labels[i]),0}, G);
-            boost::add_edge(i, source, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
+            boost::add_edge(i, sink, EdgeProperties{boost::accumulate(unaryPotential[i], 0) - unaryPotential[i].at(labels[i]),0}, G);
+            boost::add_edge(sink, i, EdgeProperties{0,0}, G);
+            boost::add_edge(i, source, EdgeProperties{0,0}, G);
             boost::add_edge(source, i, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
         }
 
@@ -76,7 +77,7 @@ vector<int> getLabel(Graph G, vector<int> labels, int label, const Graph::vertex
 
     for (auto &it = vs.first; it != vs.second; it++) {
         if ((*it != src) && (*it != sk)){
-           new_labels.push_back(G[*it].cut_class * label + (1 - G[*it].cut_class) * labels.at(*it));
+           new_labels.push_back(G[*it].cut_class * label + (1-G[*it].cut_class) * labels.at(*it));
         }
     }
 
@@ -91,7 +92,7 @@ vector<int> getLabel(Graph G, vector<int> labels, int label, const Graph::vertex
     */
 }
 
-void setLabel(vector<int> oldLabels, vector<int> newLabels){
+void setLabel(vector<int>& oldLabels, vector<int>& newLabels){
     for (int i=0; i<oldLabels.size(); i++){
         oldLabels[i] = newLabels[i];
     }
@@ -105,7 +106,7 @@ int computeEnergy(vector<int> labels, vector<vector<int>> unaryPotential, vector
     for (int j=0; j<edges.size(); j++){
         int idxS = edges[j].at(0);
         int idxT = edges[j].at(1);
-        if (labels[idxS] == labels[idxT]){
+        if (labels[idxS] != labels[idxT]){
             energy = energy + 100;
         }      
     }
@@ -113,9 +114,10 @@ int computeEnergy(vector<int> labels, vector<vector<int>> unaryPotential, vector
 }
 
 
-bool expansion(vector<int> labels, vector<vector<int>> unaryPotential, vector<vector<int>> edges){
+bool expansion(vector<int>& labels, vector<vector<int>> unaryPotential, vector<vector<int>> edges){
 
     int minEnergy = computeEnergy(labels, unaryPotential, edges);
+    cout << minEnergy << endl;
     int bestLabel = -1;
     vector<int> bestLabels;
     vector<int> localLabels;
@@ -161,6 +163,7 @@ pair<int,vector<int>> applyAlphaExpansion(vector<vector<int>> unaryPotential, ve
     cout << "Pre label computed" <<endl;
     bool modified = true;
     while(modified){
+        cout << "Computing expansion" << endl;
         modified = expansion(labels, unaryPotential, edges);
     }
     int finalEnergy = computeEnergy(labels, unaryPotential, edges);
