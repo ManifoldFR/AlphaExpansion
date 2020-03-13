@@ -21,7 +21,7 @@ vector<int> buildLabels(vector<vector<int>> unaryPotential) {
 
     //Computations of the initial labels
     for (int i=0; i<unaryPotential.size(); i++){
-        labels.push_back(distance(unaryPotential[i].begin(), min_element(unaryPotential[i].begin(), unaryPotential[i].end())));
+        labels.push_back(std::distance(unaryPotential[i].begin(), min_element(unaryPotential[i].begin(), unaryPotential[i].end())));
     }
     return labels;
 }
