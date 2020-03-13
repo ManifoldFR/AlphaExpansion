@@ -30,9 +30,9 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
     //Initialize graph with approriate edges information
     Graph G;
     int numberNodes = labels.size();
-    int sink = numberNodes + 1;
-    int source = numberNodes +2;
-    for (int i=0; i<edges.size(); i++){
+    int sink = numberNodes;
+    int source = numberNodes + 1;
+    for (int i = 0; i<edges.size(); i++){
         int idxS = edges[i].at(0);
         int idxT = edges[i].at(1);
         if (labels.at(idxS) == label && labels.at(idxT) == label ){
@@ -68,15 +68,27 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
     return G;
 }
 
-vector<int> getLabel(Graph G, vector<int> labels, int label){
+vector<int> getLabel(Graph G, vector<int> labels, int label, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sk){
+    
     vector<int> new_labels;
-    Graph::vertex_iterator v, vend;
+    
+    auto vs = vertices(G);
+
+    for (auto &it = vs.first; it != vs.second; it++) {
+        if ((*it != src) && (*it != sk)){
+           new_labels.push_back(G[*it].cut_class * label + (1 - G[*it].cut_class) * labels.at(*it));
+        }
+    }
+
+    return new_labels;
+    /*Graph::vertex_iterator v, vend;
     for (boost::tie(v, vend) = vertices(G); v != vend; v++) {
         int i = *v;
         new_labels.push_back(G[*v].cut_class * label + (1 - G[*v].cut_class) * labels.at(i));
 
     }
     return new_labels;
+    */
 }
 
 void setLabel(vector<int> oldLabels, vector<int> newLabels){
@@ -110,16 +122,18 @@ bool expansion(vector<int> labels, vector<vector<int>> unaryPotential, vector<ve
     Graph G; 
 
     size_t numberNodes = unaryPotential.size();
-    Graph::vertex_descriptor sk = numberNodes + 1;
-    Graph::vertex_descriptor src = numberNodes +2;
+    Graph::vertex_descriptor sk = numberNodes;
+    Graph::vertex_descriptor src = numberNodes + 1;
 
     for (int i=0; i<unaryPotential[0].size(); i++){
         int localLabel = i;
         G = buildGraph(localLabel, labels, unaryPotential, edges);
         compute_min_cut(G, src, sk);
-        localLabels = getLabel(G, labels, localLabel);
-        cout << "Label found" << endl;
+
+        localLabels = getLabel(G, labels, localLabel, src, sk);
+
         int graphEnergy = computeEnergy(localLabels, unaryPotential, edges);
+        
         cout << graphEnergy << endl;
         if (graphEnergy < minEnergy){
             minEnergy = graphEnergy;

@@ -241,8 +241,15 @@ void max_flow_to_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_d
 void compute_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
 {
 
+    std::cout << "Computing push relabel ... " << std::endl;
+
     push_relabel(g, src, sink);
+
+    std::cout << "Computing min cut ... " <<  std::endl;
+
     max_flow_to_min_cut(g, src, sink);
+
+    std::cout << "Finished computing min cut" << std::endl;
 
 }
 
