@@ -36,16 +36,16 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
         int idxS = edges[i].at(0);
         int idxT = edges[i].at(1);
         if (labels.at(idxS) == label && labels.at(idxT) == label ){
-            boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
-            boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
-        }
-        else if (labels.at(idxS) != label && labels.at(idxT) != label ){
-            boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
-            boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
-        }
-        else{
             boost::add_edge(idxS, idxT, EdgeProperties{0,0}, G);
             boost::add_edge(idxT, idxS, EdgeProperties{0,0}, G);
+        }
+        else if (labels.at(idxS) != label && labels.at(idxT) != label ){
+            boost::add_edge(idxS, idxT, EdgeProperties{0,0}, G);
+            boost::add_edge(idxT, idxS, EdgeProperties{0,0}, G);
+        }
+        else{
+            boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
+            boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
         }
     }
 
@@ -71,7 +71,7 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
 vector<int> getLabel(Graph G, vector<int> labels, int label){
     vector<int> new_labels;
     Graph::vertex_iterator v, vend;
-    for (boost::tie(v, vend) = vertices(G); v != vend; ++v) {
+    for (boost::tie(v, vend) = vertices(G); v != vend; v++) {
         int i = *v;
         new_labels.push_back(G[*v].cut_class * label + (1 - G[*v].cut_class) * labels.at(i));
 
@@ -106,6 +106,7 @@ bool expansion(vector<int> labels, vector<vector<int>> unaryPotential, vector<ve
     int minEnergy = computeEnergy(labels, unaryPotential, edges);
     int bestLabel = -1;
     vector<int> bestLabels;
+    vector<int> localLabels;
     Graph G; 
 
     size_t numberNodes = unaryPotential.size();
@@ -113,17 +114,16 @@ bool expansion(vector<int> labels, vector<vector<int>> unaryPotential, vector<ve
     Graph::vertex_descriptor src = numberNodes +2;
 
     for (int i=0; i<unaryPotential[0].size(); i++){
-        cout << "Local Graph about to be built" << endl;
         int localLabel = i;
         G = buildGraph(localLabel, labels, unaryPotential, edges);
-        cout << "Local Graph built" << endl;
         compute_min_cut(G, src, sk);
+        localLabels = getLabel(G, labels, localLabel);
 
-        int graphEnergy = computeEnergy(labels, unaryPotential, edges);
-
+        int graphEnergy = computeEnergy(localLabels, unaryPotential, edges);
+        cout << graphEnergy << endl;
         if (graphEnergy < minEnergy){
             minEnergy = graphEnergy;
-            bestLabels = getLabel(G, labels, localLabel);
+            bestLabels = localLabels;
             bestLabel = i;
         }
 
