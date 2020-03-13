@@ -118,7 +118,7 @@ bool expansion(vector<int> labels, vector<vector<int>> unaryPotential, vector<ve
         G = buildGraph(localLabel, labels, unaryPotential, edges);
         compute_min_cut(G, src, sk);
         localLabels = getLabel(G, labels, localLabel);
-
+        cout << "Label found" << endl;
         int graphEnergy = computeEnergy(localLabels, unaryPotential, edges);
         cout << graphEnergy << endl;
         if (graphEnergy < minEnergy){
