@@ -16,7 +16,7 @@
 using namespace std;
 
 
-vector<int> buildLabels(vector<vector<int>> unaryPotential) {
+vector<int> buildLabels(const vector<vector<int>>& unaryPotential) {
     //Graph Constructor to use at the begining
     vector<int> labels;
 
@@ -27,13 +27,16 @@ vector<int> buildLabels(vector<vector<int>> unaryPotential) {
     return labels;
 }
 
-Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotential, vector<vector<int>> edges){
+/// Build the graph for alpha expansion.
+/// See Simon J.D. Prince, "Computer Vision: Models, Learning, and Inference", p. 41
+/// Book URL: http://www0.cs.ucl.ac.uk/external/s.prince/book/Algorithms.pdf
+Graph buildGraph(int label, const vector<int>& labels, const vector<vector<int>>& unaryPotential, const vector<vector<int>>& edges){
     //Initialize graph with approriate edges information
     Graph G;
     int numberNodes = labels.size();
     int sink = numberNodes;
-    int source = numberNodes + 1;
-    int new_node = source +1;
+    int source = sink + 1;
+    int new_node = source + 1;  // denoted z in the book
     for (int i = 0; i<edges.size(); i++){
         int idxS = edges[i].at(0);
         int idxT = edges[i].at(1);
@@ -53,6 +56,7 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
             boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
         }
         else{
+            // Case 4
             boost::add_edge(idxS, new_node, EdgeProperties{100,0}, G);
             boost::add_edge(new_node, idxS, EdgeProperties{BIG_INTEGER,0}, G);
             boost::add_edge(new_node, idxT, EdgeProperties{BIG_INTEGER,0}, G);
@@ -99,13 +103,13 @@ vector<int> getLabel(Graph G, vector<int> labels, int label, const Graph::vertex
     */
 }
 
-void setLabel(vector<int>& oldLabels, vector<int>& newLabels){
+void setLabel(vector<int>& oldLabels, const vector<int>& newLabels){
     for (int i=0; i<oldLabels.size(); i++){
         oldLabels[i] = newLabels[i];
     }
 }
 
-int computeEnergy(vector<int> labels, vector<vector<int>> unaryPotential, vector<vector<int>> edges){
+int computeEnergy(const vector<int>& labels, const vector<vector<int>>& unaryPotential, const vector<vector<int>>& edges){
     int energy = 0;
     for (int i =0; i<labels.size(); i++){
         energy = energy + unaryPotential[i].at(labels[i]);

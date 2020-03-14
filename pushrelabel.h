@@ -37,7 +37,7 @@ inline bool can_push(
     Graph::vertex_descriptor w)
 {
     auto e = edge(v, w, g).first;
-    return (g[v].labeling == g[w].labeling + 1) && (g[e].capacity - g[e].flow > 0);
+    return (g[v].labeling == g[w].labeling + 1) && get_residual(g[e]) > 0;
 }
 
 // TODO : Function to identify to which neighbor we must push
@@ -50,19 +50,13 @@ void push(
     Graph::vertex_descriptor src,
     Graph::vertex_descriptor sink)
 {
-    auto e = edge(v, w, g).first;
+    auto edge = boost::edge(v, w, g).first;
 
-    int residual = g[e].capacity - g[e].flow;
+    int residual = get_residual(g[edge]);
 
     int delta = std::min(g[v].excess_flow, residual);
 
-    g[e].flow += delta;
-
-    auto e_rev = edge(w, v, g).first;
-    g[e_rev].flow -= delta;
-
-    g[v].excess_flow -= delta;
-    g[w].excess_flow += delta;
+    push_flow(v, w, g, residual);
 }
 
 /// Relabel operation on the graph.
@@ -173,6 +167,7 @@ bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::ve
     // Loop invariant : any vertex that goes in the queue remains active until pushed out
     while (continuer)
     {
+
         // Pop active vertex from queue
         Graph::vertex_descriptor current = q.front();
 
@@ -238,7 +233,7 @@ void max_flow_to_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_d
         auto neighs = adjacent_vertices(next, g);
         for (auto &it = neighs.first; it != neighs.second; it++) {
             auto e = edge(next, *it, g).first;
-            if ((g[e].capacity - g[e].flow > 0) && (g[*it].cut_class == 1)){
+            if ((get_residual(g[e]) > 0) && (g[*it].cut_class == 1)){
                 q.push(*it);
             }
         }

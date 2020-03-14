@@ -2,6 +2,7 @@
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <assert.h>
 
 using namespace boost;
 
@@ -36,3 +37,17 @@ typedef adjacency_list<vecS, vecS, bidirectionalS,
 typedef property_map<Graph, PRPotential> vertex_prop_map;
 typedef property_map<Graph, EdgeProperties> edge_prop_map;
 
+void push_flow(const Graph::vertex_descriptor& v, const Graph::vertex_descriptor& w, Graph& g, int to_push) {
+    auto edge = boost::edge(v, w, g).first;
+    auto rev_edge = boost::edge(w, v, g).first;
+
+    assert (g[edge].flow + to_push <= g[edge].capacity);
+    
+    g[edge].flow     += to_push;
+    // get negative flow with capacity >= 0 so we can push back
+    g[rev_edge].flow -= to_push;
+    
+    g[v].excess_flow -= to_push;
+    g[w].excess_flow += to_push;
+
+}
