@@ -37,7 +37,7 @@ inline bool can_push(
     Graph::vertex_descriptor w)
 {
     auto e = edge(v, w, g).first;
-    return (g[v].labeling == g[w].labeling + 1) && (g[e].capacity - g[e].flow > 0);
+    return (g[v].labeling == g[w].labeling + 1) && get_residual(g[e]) > 0;
 }
 
 // TODO : Function to identify to which neighbor we must push
@@ -52,7 +52,7 @@ void push(
 {
     auto e = edge(v, w, g).first;
 
-    int residual = g[e].capacity - g[e].flow;
+    int residual = get_residual(g[e]);
 
     int delta = std::min(g[v].excess_flow, residual);
 
@@ -173,6 +173,7 @@ bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::ve
     // Loop invariant : any vertex that goes in the queue remains active until pushed out
     while (continuer)
     {
+
         // Pop active vertex from queue
         Graph::vertex_descriptor current = q.front();
 
@@ -238,7 +239,7 @@ void max_flow_to_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_d
         auto neighs = adjacent_vertices(next, g);
         for (auto &it = neighs.first; it != neighs.second; it++) {
             auto e = edge(next, *it, g).first;
-            if ((g[e].capacity - g[e].flow > 0) && (g[*it].cut_class == 1)){
+            if ((get_residual(g[e]) > 0) && (g[*it].cut_class == 1)){
                 q.push(*it);
             }
         }
