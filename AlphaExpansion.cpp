@@ -37,9 +37,13 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
     for (int i = 0; i<edges.size(); i++){
         int idxS = edges[i].at(0);
         int idxT = edges[i].at(1);
-        if (labels.at(idxS) == labels.at(idxT) ){
+        if (labels.at(idxS) == labels.at(idxT) && labels.at(idxS) == label ){
             boost::add_edge(idxS, idxT, EdgeProperties{0,0}, G);
             boost::add_edge(idxT, idxS, EdgeProperties{0,0}, G);
+        }
+        else if (labels.at(idxS) == labels.at(idxT) && labels.at(idxS) != label ){
+            boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
+            boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);         
         }
         else if (labels.at(idxS) == label){
             boost::add_edge(idxS, idxT, EdgeProperties{0,0}, G);
