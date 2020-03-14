@@ -29,6 +29,8 @@ Graph test_pr() {
             add_edge(w, v, EdgeProperties{0, 0}, g);
     }
 
+    // symmetrize_graph(g);
+
     return g;
 }
 

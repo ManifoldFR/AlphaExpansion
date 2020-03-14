@@ -56,7 +56,7 @@ void push(
 
     int delta = std::min(g[v].excess_flow, residual);
 
-    push_flow(v, w, g, residual);
+    push_flow(v, w, g, delta);
 }
 
 /// Relabel operation on the graph.

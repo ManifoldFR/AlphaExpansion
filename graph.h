@@ -37,7 +37,8 @@ typedef adjacency_list<vecS, vecS, bidirectionalS,
 typedef property_map<Graph, PRPotential> vertex_prop_map;
 typedef property_map<Graph, EdgeProperties> edge_prop_map;
 
-void push_flow(const Graph::vertex_descriptor& v, const Graph::vertex_descriptor& w, Graph& g, int to_push) {
+void push_flow(const Graph::vertex_descriptor& v, const Graph::vertex_descriptor& w, Graph& g, int to_push)
+{
     auto edge = boost::edge(v, w, g).first;
     auto rev_edge = boost::edge(w, v, g).first;
 
@@ -50,4 +51,17 @@ void push_flow(const Graph::vertex_descriptor& v, const Graph::vertex_descriptor
     g[v].excess_flow -= to_push;
     g[w].excess_flow += to_push;
 
+}
+
+void symmetrize_graph(Graph& g)
+{
+    auto edges = boost::edges(g);
+    for(auto &it = edges.first; it != edges.second; it++)
+    {
+        auto v(source(*it, g)), w(target(*it, g));
+        if (boost::edge(w, v, g).second == false)
+        {
+            boost::add_edge(w, v, {0, 0}, g);
+        }
+    }
 }
