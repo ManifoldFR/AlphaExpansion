@@ -27,12 +27,8 @@ int get_residual(EdgeProperties e) {
     return e.capacity - e.flow;
 }
 
-typedef adjacency_list<vecS, vecS, directedS,
+typedef adjacency_list<vecS, vecS, bidirectionalS,
                        PRPotential, EdgeProperties> Graph;
-
-void symmetrize_graph() {
-    
-}
 
 typedef property_map<Graph, PRPotential> vertex_prop_map;
 typedef property_map<Graph, EdgeProperties> edge_prop_map;
