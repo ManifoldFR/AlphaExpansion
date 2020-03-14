@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <limits>
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -33,35 +34,45 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
     int numberNodes = labels.size();
     int sink = numberNodes;
     int source = numberNodes + 1;
+    int new_node = source +1;
     for (int i = 0; i<edges.size(); i++){
         int idxS = edges[i].at(0);
         int idxT = edges[i].at(1);
-        if (labels.at(idxS) == label && labels.at(idxT) == label ){
+        if (labels.at(idxS) == labels.at(idxT) ){
             boost::add_edge(idxS, idxT, EdgeProperties{0,0}, G);
             boost::add_edge(idxT, idxS, EdgeProperties{0,0}, G);
         }
-        else if (labels.at(idxS) != label && labels.at(idxT) != label ){
+        else if (labels.at(idxS) == label){
             boost::add_edge(idxS, idxT, EdgeProperties{0,0}, G);
+            boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
+        }
+        else if (labels.at(idxT) == label){
+            boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
             boost::add_edge(idxT, idxS, EdgeProperties{0,0}, G);
         }
         else{
-            boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
-            boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
+            boost::add_edge(idxS, new_node, EdgeProperties{100,0}, G);
+            boost::add_edge(new_node, idxS, EdgeProperties{0,0}, G);
+            boost::add_edge(new_node, idxT, EdgeProperties{0,0}, G);
+            boost::add_edge(idxT, new_node, EdgeProperties{100,0}, G);
+            boost::add_edge(new_node, sink, EdgeProperties{100,0}, G);
+            boost::add_edge(sink, new_node, EdgeProperties{0,0}, G);
+            boost::add_edge(source, new_node, EdgeProperties{numeric_limits<int>::max(),0}, G);
+            boost::add_edge(new_node, source, EdgeProperties{0,0}, G);
+            new_node++;
         }
     }
 
     for (int i=0; i<unaryPotential.size(); i++){
+        boost::add_edge(source, i, EdgeProperties{unaryPotential[i].at(label),0}, G);
+        boost::add_edge(i, source, EdgeProperties{0,0}, G);
         if (labels.at(i) == label){
-            boost::add_edge(i, sink, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
+            boost::add_edge(i, sink, EdgeProperties{numeric_limits<int>::max(),0}, G);
             boost::add_edge(sink, i, EdgeProperties{0,0}, G);
-            boost::add_edge(i, source, EdgeProperties{0,0}, G);
-            boost::add_edge(source, i, EdgeProperties{boost::accumulate(unaryPotential[i], 0) - unaryPotential[i].at(labels[i]),0}, G);
         }
         else{
-            boost::add_edge(i, sink, EdgeProperties{boost::accumulate(unaryPotential[i], 0) - unaryPotential[i].at(labels[i]),0}, G);
+            boost::add_edge(i, sink, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
             boost::add_edge(sink, i, EdgeProperties{0,0}, G);
-            boost::add_edge(i, source, EdgeProperties{0,0}, G);
-            boost::add_edge(source, i, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
         }
 
     }
@@ -75,7 +86,7 @@ vector<int> getLabel(Graph G, vector<int> labels, int label, const Graph::vertex
     
     auto vs = vertices(G);
 
-    for (auto &it = vs.first; it != vs.second; it++) {
+    for (auto &it = vs.first; *it != labels.size(); it++) {
         if ((*it != src) && (*it != sk)){
            new_labels.push_back(G[*it].cut_class * label + (1-G[*it].cut_class) * labels.at(*it));
         }
