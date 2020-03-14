@@ -5,6 +5,9 @@
 
 using namespace boost;
 
+const int BIG_INTEGER = std::numeric_limits<int>::max();
+
+
 /// Node properties for the PR algorithm
 struct PRPotential {
     /// Excess flow at the node.
