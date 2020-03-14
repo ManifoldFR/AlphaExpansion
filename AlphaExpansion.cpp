@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
-#include <limits>
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -57,7 +56,7 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
             boost::add_edge(idxT, new_node, EdgeProperties{100,0}, G);
             boost::add_edge(new_node, sink, EdgeProperties{100,0},  G);
             boost::add_edge(sink, new_node, EdgeProperties{0,0}, G);
-            boost::add_edge(source, new_node, EdgeProperties{numeric_limits<int>::max(),0}, G);
+            boost::add_edge(source, new_node, EdgeProperties{BIG_INTEGER, 0}, G);
             boost::add_edge(new_node, source, EdgeProperties{0,0}, G);
             new_node++;
         }
@@ -67,7 +66,7 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
         boost::add_edge(source, i, EdgeProperties{unaryPotential[i].at(label),0}, G);
         boost::add_edge(i, source, EdgeProperties{0,0}, G);
         if (labels.at(i) == label){
-            boost::add_edge(i, sink, EdgeProperties{numeric_limits<int>::max(),0}, G);
+            boost::add_edge(i, sink, EdgeProperties{BIG_INTEGER, 0}, G);
             boost::add_edge(sink, i, EdgeProperties{0,0}, G);
         }
         else{
