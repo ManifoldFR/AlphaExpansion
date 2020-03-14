@@ -69,12 +69,14 @@ Graph buildGraph(int label, const vector<int>& labels, const vector<vector<int>>
     }
 
     for (int i=0; i<unaryPotential.size(); i++){
-        boost::add_edge(source, i, EdgeProperties{unaryPotential[i].at(label),0}, G);
         if (labels.at(i) == label){
+            boost::add_edge(source, i, EdgeProperties{0,0}, G);
             boost::add_edge(i, sink, EdgeProperties{BIG_INTEGER, 0}, G);
         }
         else{
-            boost::add_edge(i, sink, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
+            int smallest = min(unaryPotential[i].at(label),unaryPotential[i].at(labels[i]));
+            boost::add_edge(source, i, EdgeProperties{unaryPotential[i].at(label) - smallest,0}, G);
+            boost::add_edge(i, sink, EdgeProperties{unaryPotential[i].at(labels[i]) - smallest, 0}, G);
         }
 
     }

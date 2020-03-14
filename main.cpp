@@ -31,12 +31,12 @@ int main(int argc, char **argv)
 	while (infile2 >> a >> b >> c >> d >> e >> f)
 	{
         vector<int> local_proba;
-        local_proba.push_back(100-a);
-        local_proba.push_back(100-b);
-        local_proba.push_back(100-c);
-        local_proba.push_back(100-d);
-        local_proba.push_back(100-e);
-        local_proba.push_back(100-f);
+        local_proba.push_back(-a);
+        local_proba.push_back(-b);
+        local_proba.push_back(-c);
+        local_proba.push_back(-d);
+        local_proba.push_back(-e);
+        local_proba.push_back(-f);
         probabilites.push_back(local_proba);
 	}
 
