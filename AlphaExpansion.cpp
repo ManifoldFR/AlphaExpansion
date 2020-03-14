@@ -38,20 +38,19 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
         int idxS = edges[i].at(0);
         int idxT = edges[i].at(1);
         if (labels.at(idxS) == labels.at(idxT) && labels.at(idxS) == label ){
-            boost::add_edge(idxS, idxT, EdgeProperties{0,0}, G);
-            boost::add_edge(idxT, idxS, EdgeProperties{0,0}, G);
+            ;
         }
         else if (labels.at(idxS) == labels.at(idxT) && labels.at(idxS) != label ){
             boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
             boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);         
         }
         else if (labels.at(idxS) == label){
-            boost::add_edge(idxS, idxT, EdgeProperties{0,0}, G);
+            boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
             boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
         }
         else if (labels.at(idxT) == label){
             boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
-            boost::add_edge(idxT, idxS, EdgeProperties{0,0}, G);
+            boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
         }
         else{
             boost::add_edge(idxS, new_node, EdgeProperties{100,0}, G);
@@ -59,21 +58,17 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
             boost::add_edge(new_node, idxT, EdgeProperties{BIG_INTEGER,0}, G);
             boost::add_edge(idxT, new_node, EdgeProperties{100,0}, G);
             boost::add_edge(new_node, sink, EdgeProperties{100,0},  G);
-            boost::add_edge(sink, new_node, EdgeProperties{0,0}, G);
             new_node++;
         }
     }
 
     for (int i=0; i<unaryPotential.size(); i++){
         boost::add_edge(source, i, EdgeProperties{unaryPotential[i].at(label),0}, G);
-        boost::add_edge(i, source, EdgeProperties{0,0}, G);
         if (labels.at(i) == label){
             boost::add_edge(i, sink, EdgeProperties{BIG_INTEGER, 0}, G);
-            boost::add_edge(sink, i, EdgeProperties{0,0}, G);
         }
         else{
             boost::add_edge(i, sink, EdgeProperties{unaryPotential[i].at(labels[i]),0}, G);
-            boost::add_edge(sink, i, EdgeProperties{0,0}, G);
         }
 
     }
@@ -119,7 +114,7 @@ int computeEnergy(vector<int> labels, vector<vector<int>> unaryPotential, vector
         int idxS = edges[j].at(0);
         int idxT = edges[j].at(1);
         if (labels[idxS] != labels[idxT]){
-            energy = energy + 100;
+            energy = energy + 200;
         }      
     }
     return energy;
