@@ -55,7 +55,7 @@ Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotenti
             boost::add_edge(new_node, idxS, EdgeProperties{0,0}, G);
             boost::add_edge(new_node, idxT, EdgeProperties{0,0}, G);
             boost::add_edge(idxT, new_node, EdgeProperties{100,0}, G);
-            boost::add_edge(new_node, sink, EdgeProperties{100,0}, G);
+            boost::add_edge(new_node, sink, EdgeProperties{100,0},  G);
             boost::add_edge(sink, new_node, EdgeProperties{0,0}, G);
             boost::add_edge(source, new_node, EdgeProperties{numeric_limits<int>::max(),0}, G);
             boost::add_edge(new_node, source, EdgeProperties{0,0}, G);
