@@ -50,19 +50,13 @@ void push(
     Graph::vertex_descriptor src,
     Graph::vertex_descriptor sink)
 {
-    auto e = edge(v, w, g).first;
+    auto edge = boost::edge(v, w, g).first;
 
-    int residual = get_residual(g[e]);
+    int residual = get_residual(g[edge]);
 
     int delta = std::min(g[v].excess_flow, residual);
 
-    g[e].flow += delta;
-
-    auto e_rev = edge(w, v, g).first;
-    g[e_rev].flow -= delta;
-
-    g[v].excess_flow -= delta;
-    g[w].excess_flow += delta;
+    push_flow(v, w, g, residual);
 }
 
 /// Relabel operation on the graph.
