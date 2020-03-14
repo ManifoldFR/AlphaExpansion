@@ -41,19 +41,21 @@ Graph buildGraph(int label, const vector<int>& labels, const vector<vector<int>>
         int idxS = edges[i].at(0);
         int idxT = edges[i].at(1);
         if (labels.at(idxS) == labels.at(idxT) && labels.at(idxS) == label ){
+            // Case 1
             ;
         }
         else if (labels.at(idxS) == labels.at(idxT) && labels.at(idxS) != label ){
+            // Case 3
             boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
             boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);         
         }
         else if (labels.at(idxS) == label){
-            boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
+            // Case 2b
             boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
         }
         else if (labels.at(idxT) == label){
+            // Case 2a
             boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
-            boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
         }
         else{
             // Case 4
@@ -93,14 +95,6 @@ vector<int> getLabel(Graph G, vector<int> labels, int label, const Graph::vertex
     }
 
     return new_labels;
-    /*Graph::vertex_iterator v, vend;
-    for (boost::tie(v, vend) = vertices(G); v != vend; v++) {
-        int i = *v;
-        new_labels.push_back(G[*v].cut_class * label + (1 - G[*v].cut_class) * labels.at(i));
-
-    }
-    return new_labels;
-    */
 }
 
 void setLabel(vector<int>& oldLabels, const vector<int>& newLabels){
@@ -118,7 +112,7 @@ int computeEnergy(const vector<int>& labels, const vector<vector<int>>& unaryPot
         int idxS = edges[j].at(0);
         int idxT = edges[j].at(1);
         if (labels[idxS] != labels[idxT]){
-            energy = energy + 200;
+            energy = energy + 100;
         }      
     }
     return energy;
@@ -141,6 +135,7 @@ bool expansion(vector<int>& labels, vector<vector<int>> unaryPotential, vector<v
     for (int i=0; i<unaryPotential[0].size(); i++){
         int localLabel = i;
         G = buildGraph(localLabel, labels, unaryPotential, edges);
+        symmetrize_graph(G);
         compute_min_cut(G, src, sk);
 
         localLabels = getLabel(G, labels, localLabel, src, sk);
