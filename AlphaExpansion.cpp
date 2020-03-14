@@ -27,13 +27,16 @@ vector<int> buildLabels(vector<vector<int>> unaryPotential) {
     return labels;
 }
 
+/// Build the graph for alpha expansion.
+/// See Simon J.D. Prince, "Computer Vision: Models, Learning, and Inference", p. 41
+/// Book URL: http://www0.cs.ucl.ac.uk/external/s.prince/book/Algorithms.pdf
 Graph buildGraph(int label, vector<int> labels, vector<vector<int>> unaryPotential, vector<vector<int>> edges){
     //Initialize graph with approriate edges information
     Graph G;
     int numberNodes = labels.size();
     int sink = numberNodes;
     int source = numberNodes + 1;
-    int new_node = source +1;
+    int new_node = source + 1;  // denoted z in the book
     for (int i = 0; i<edges.size(); i++){
         int idxS = edges[i].at(0);
         int idxT = edges[i].at(1);
