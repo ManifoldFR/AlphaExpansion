@@ -22,12 +22,7 @@ Graph test_pr() {
     add_edge(4, 5, EdgeProperties{4, 0}, g);
 
     // caution : need to symmetrize the graph
-    auto es = edges(g);
-    for (auto &it = es.first; it != es.second; it++){
-        auto v(source(*it, g)), w(target(*it, g));
-        if (!edge(w, v, g).second)
-            add_edge(w, v, EdgeProperties{0, 0}, g);
-    }
+    symmetrize_graph(g);
 
     // symmetrize_graph(g);
 
