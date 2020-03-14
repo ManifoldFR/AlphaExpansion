@@ -26,7 +26,9 @@ inline bool is_active(
     Graph::vertex_descriptor sink)
 {
     bool not_src_sink = (v != src) && (v != sink);
+
     bool finite = std::isfinite(g[v].labeling);
+    
     bool has_excess_flow = (g[v].excess_flow > 0);
     return not_src_sink && finite && has_excess_flow;
 }
@@ -37,7 +39,7 @@ inline bool can_push(
     Graph::vertex_descriptor w)
 {
     auto e = edge(v, w, g).first;
-    return (g[v].labeling == g[w].labeling + 1) && (g[e].capacity - g[e].flow > 0);
+    return (g[v].labeling == g[w].labeling + 1) && (get_residual(g[e]) > 0);
 }
 
 // TODO : Function to identify to which neighbor we must push
@@ -52,7 +54,7 @@ void push(
 {
     auto e = edge(v, w, g).first;
 
-    int residual = g[e].capacity - g[e].flow;
+    int residual = get_residual(g[e]);
 
     int delta = std::min(g[v].excess_flow, residual);
 
@@ -73,10 +75,10 @@ void relabel(
     Graph::vertex_descriptor sink)
 {
     // iterate over the edges
-    auto wi = adjacent_vertices(v, g);
+    auto wi = boost::adjacent_vertices(v, g);
 
     // can't label inf here so we take 2*|V| (should not be attainable I think)
-    g[v].labeling = 2 * size(vertices(g));
+    g[v].labeling = std::numeric_limits<int>::max();
 
     for (auto &wp = wi.first; wp != wi.second; wp++)
     {
@@ -97,6 +99,7 @@ void init_preflow(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descript
     {
         auto e = edge(src, neighbor, g).first;
         auto rev_e = edge(neighbor, src, g).first;
+
         g[e].flow = g[e].capacity;
         g[rev_e].flow = -g[e].capacity;
 
@@ -173,6 +176,9 @@ bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::ve
     // Loop invariant : any vertex that goes in the queue remains active until pushed out
     while (continuer)
     {
+
+        std::cout << push_count << " & " << relabel_count << std::endl;
+
         // Pop active vertex from queue
         Graph::vertex_descriptor current = q.front();
 
@@ -199,6 +205,7 @@ bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::ve
         if (!pushed)
         {
             relabel(g, current, src, sink);
+            auto neighbors = boost::adjacent_vertices(current, g);
             relabel_count++;
         }
 

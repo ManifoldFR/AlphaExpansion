@@ -2,6 +2,7 @@
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <limits.h>
 
 using namespace boost;
 
@@ -21,9 +22,14 @@ struct EdgeProperties {
     int flow = 0;
 };
 
+auto MAX_VAL = std::numeric_limits<int>::max();
+
 /// 
 
 int get_residual(EdgeProperties e) {
+    if (e.capacity == MAX_VAL && e.flow < 0){
+        return e.capacity;
+    }        
     return e.capacity - e.flow;
 }
 
