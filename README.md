@@ -28,6 +28,11 @@ nodes.txt
 edges.txt
 ```
 
+Run with the files at the root:
+```bash
+./Main .
+```
+
 
 
 ## References
