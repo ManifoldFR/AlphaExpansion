@@ -27,10 +27,12 @@ inline bool is_active(
     Graph::vertex_descriptor src,
     Graph::vertex_descriptor sink)
 {
+
     bool not_src_sink = (v != src) && (v != sink);
     bool finite = std::isfinite(g[v].labeling);
     bool has_excess_flow = (g[v].excess_flow > 0);
     return not_src_sink && finite && has_excess_flow;
+
 }
 
 inline bool can_push(
@@ -144,7 +146,7 @@ void init_labels_smart(Graph &g, const Graph::vertex_descriptor& src, const Grap
 }
 
 /// Applies push relabel for a given graph to compute maximum flow
-bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sink)
+bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sink, bool verbose = true)
 {
 
     // Push flow from source to its neighbors
@@ -159,12 +161,16 @@ bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::ve
     auto src_neighs = boost::adjacent_vertices(src, g);
     for (auto &it = src_neighs.first; it != src_neighs.second; it++)
     {
-        q.push(*it);
+        // only push in queue the now active nodes (rest are useless)
+        if (is_active(g, *it, src, sink))
+            q.push(*it);
     }
 
     bool continuer = true;
 
     int push_count(0), relabel_count(0);
+
+    if (verbose) std::cout << "Source & sink are " << src << " & " << sink << std::endl;
 
     // Loop invariant : any vertex that goes in the queue remains active until pushed out
     while (continuer)
@@ -172,29 +178,51 @@ bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::ve
 
         // Pop active vertex from queue
         Graph::vertex_descriptor current = q.front();
+        if ( verbose ) std::cout << "cv " << current << " : "; 
 
         auto current_neighs = boost::adjacent_vertices(current, g);
         bool pushed = false;
-        // loop over neighbors and find if one can be pushed
-        for (auto &it = current_neighs.first; it != current_neighs.second; it++)
+
+        bool can_push_to_sink = boost::edge(current, sink, g).second && can_push(g, current, sink);
+
+        if (can_push_to_sink)
         {
-            auto e = edge(current, *it, g).first;
-            if (can_push(g, current, *it))
+        
+            auto e = boost::edge(current, sink, g).first;
+            if (verbose) std::cout << " push to " << sink << ".old_flow=" << g[e].flow << ".excess_flow=" << g[current].excess_flow << ".capacity=" << g[e].capacity;
+            if (verbose) std::cout << ".residual flow to sink is " << get_residual(g[e]);
+            pushed = true;
+            push_count ++;
+            push(g, current, sink, src, sink);
+            if (verbose) std::cout << ". new_flow " << g[e].flow << ".new_excess_flow" << g[current].excess_flow << std::endl;
+        
+        }
+        
+
+        if (pushed == false) {
+            // loop over neighbors and find if one can be pushed
+            for (auto &it = current_neighs.first; it != current_neighs.second; it++)
             {
-                pushed = true;
-                push_count ++;
-                bool was_in_queue = is_active(g, *it, src, sink);
-                push(g, current, *it, src, sink);
-                // We never push the sink or the source into the queue
-                if (!was_in_queue && is_active(g, *it, src, sink))
-                    q.push(*it);
-                break;
+                if (!pushed && can_push(g, current, *it))
+                {
+                    pushed = true;
+                    auto e = edge(current, *it, g).first;
+                    if (verbose) std::cout << " push to " << *it << ".old_flow=" << g[e].flow << ".excess_flow=" << g[current].excess_flow << ".capacity=" << g[e].capacity;
+                    push_count ++;
+                    bool was_in_queue = is_active(g, *it, src, sink);
+                    push(g, current, *it, src, sink);
+                    if (verbose) std::cout << ". new_flow " << g[e].flow << ".new_excess_flow" << g[current].excess_flow << std::endl;
+                    // We never push the sink or the source into the queue
+                    if (!was_in_queue && is_active(g, *it, src, sink))
+                        q.push(*it);
+                }
             }
         }
 
         // if not pushed, we have to relabel the vertex
         if (!pushed)
         {
+            if (verbose) std::cout << ". relabel" << std::endl;
             relabel(g, current, src, sink);
             relabel_count++;
         }
@@ -204,6 +232,8 @@ bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::ve
         {
             q.pop();
         }
+
+        if (verbose) std::cin.get();
 
         // quit if queue is empty
         continuer = !q.empty();
@@ -243,22 +273,36 @@ void max_flow_to_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_d
 }
 
 // Calls push_relabel and max_flow_to_min_cut to compute min cut from scratch
-void compute_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+// returns the value of the min cut
+int compute_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink, bool verbose = false)
 {
+    if (verbose)
+        std::cout << "Computing push relabel ... " << std::endl;
 
     std::cout << "Computing push relabel ... " << std::endl;
 
     // auto edge_capacities = get(&EdgeProperties::capacity, g);
     // auto edge_rev = get(boost::edge_reverse, g);
     // push_relabel_max_flow(g, src, sink);
-    push_relabel(g, src, sink);
+    push_relabel(g, src, sink, verbose);
 
-    std::cout << "Computing min cut ... " <<  std::endl;
+    if (verbose)
+        std::cout << "Computing min cut ... " <<  std::endl;
 
     max_flow_to_min_cut(g, src, sink);
 
-    std::cout << "Finished computing min cut" << std::endl;
+    if (verbose)
+        std::cout << "Finished computing min cut" << std::endl;
 
+    int min_cut = 0;
+    auto edges = boost::edges(g);
+    for(auto &it = edges.first; it != edges.second; it++) {
+        auto v(source(*it, g)), w(target(*it, g));
+        if (g[v].cut_class == 0 && g[w].cut_class == 1)
+            min_cut += g[*it].capacity;
+    }
+
+    return min_cut;
 }
 
 } // namespace
