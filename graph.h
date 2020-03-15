@@ -140,8 +140,6 @@ BoostEdgeProperties> BoostGraph;
 
 BoostGraph graph_to_boost_graph(const Graph& g)
 {
-    /// Caution : g must be symmetrized 
-
     const int n_verts = boost::num_vertices(g);
     BoostGraph bg(n_verts);
 
