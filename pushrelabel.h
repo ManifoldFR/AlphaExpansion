@@ -144,6 +144,8 @@ void init_labels_smart(Graph &g, const Graph::vertex_descriptor& src, const Grap
 }
 
 /// Applies push relabel for a given graph to compute maximum flow
+/// This function should not modify any adjacency list (cf. https://www.boost.org/doc/libs/1_37_0/libs/graph/doc/adjacency_list.html)
+
 bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sink, bool verbose = true)
 {
 
@@ -272,7 +274,7 @@ void max_flow_to_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_d
 
 // Calls push_relabel and max_flow_to_min_cut to compute min cut from scratch
 // returns the value of the min cut
-int compute_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink, bool verbose = false)
+long compute_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink, bool verbose = false)
 {
     if (verbose)
         std::cout << "Computing push relabel ... " << std::endl;
@@ -287,7 +289,7 @@ int compute_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descri
     if (verbose)
         std::cout << "Finished computing min cut" << std::endl;
 
-    int min_cut = 0;
+    long min_cut = 0;
     auto edges = boost::edges(g);
     for(auto &it = edges.first; it != edges.second; it++) {
         auto v(source(*it, g)), w(target(*it, g));
@@ -296,6 +298,52 @@ int compute_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descri
     }
 
     return min_cut;
+}
+
+long push_relabel_boost_version(BoostGraph& bg, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+{
+
+    auto cap_map = get(&BoostEdgeProperties::capacity, bg);
+    auto res_cap_map = get(&BoostEdgeProperties::residual_capacity, bg);
+    auto rev_map = get(&BoostEdgeProperties::reverse, bg);
+    auto indx_map = get(vertex_index, bg);
+
+    long flow =  boost::push_relabel_max_flow(bg, src, sink, cap_map, res_cap_map, rev_map, indx_map);
+
+    return flow;
+}
+
+
+/// Computes the min cut and returns its value
+void max_flow_to_min_cut_boost(Graph& g, const BoostGraph& bg,  Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+{
+    auto num_verts = boost::num_vertices(bg);
+
+    // Copy capacity into old graph
+    for (size_t i = 0; i < num_verts; i++)
+    {
+        auto neighs = boost::adjacent_vertices(i, g);
+        for (auto &j = neighs.first; j != neighs.second; j++)
+        {
+            auto edge = boost::edge(i, *j, g).first;
+            auto b_edge = boost::edge(i, *j, bg).first;
+            
+            g[edge].flow = (bg[b_edge].capacity - bg[b_edge].residual_capacity);
+        }
+    }
+
+    max_flow_to_min_cut(g, src, sink);
+}
+
+long compute_min_cut_boost(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+{
+    
+    auto bg = graph_to_boost_graph(g);
+    long flow = push_relabel_boost_version(bg, src, sink);
+
+    max_flow_to_min_cut_boost(g, bg, src, sink);
+
+    return flow;
 }
 
 } // namespace

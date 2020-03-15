@@ -59,6 +59,7 @@ Graph test_pr2() {
 
 Graph test_pr3() {
     /// https://developers.google.com/optimization/flow/maxflow
+    // Max flow should be 60
     
     size_t num_vertices = 5; 
     Graph g(num_vertices);
@@ -87,15 +88,37 @@ int main() {
     std::cout << "Beginning example 1" << std::endl;
 
     auto g = test_pr();
+    auto vertices = boost::vertices(g);
+
     auto min_cut = compute_min_cut(g, 0, 5);
+    
+    for (auto &it = vertices.first; it != vertices.second; it++) {
+        std::cout << *it << " " << g[*it].cut_class << std::endl;;
+    }
+
+    std::cout << " =========== " << std::endl;
+
+    auto min_cut_boost = compute_min_cut_boost(g, 0, 5);
+
+    vertices = boost::vertices(g);
+    
+    for (auto &it2 = vertices.first; it2 != vertices.second; it2++) {
+        std::cout << *it2 << " " << g[*it2].cut_class << std::endl;;
+    }
+
+    std::cout << " =========== " << std::endl;
 
     auto edges = boost::edges(g);
     for (auto &it = edges.first; it != edges.second; it++) {
         std::cout << source(*it, g) << " " << target(*it, g) << " " << g[*it].flow << "/" << g[*it].capacity << std::endl;
     }
 
+    std::cout << " =========== " << std::endl;   
+
     std::cout << "Value of min cut : " << min_cut << std::endl;
 
+    std::cout << "Result from boost : " << min_cut_boost << std::endl;
+    
     std::cout << "Press key to continue ";
     std::cin.get();
 
@@ -104,7 +127,25 @@ int main() {
     std::cout << "Beginning example 2" << std::endl;
 
     auto g2 = test_pr2();
+    auto vertices2 = boost::vertices(g2);
+
     auto min_cut2 = compute_min_cut(g2, 0, 6);
+
+    for (auto &it = vertices2.first; it != vertices2.second; it++) {
+        std::cout << *it << " " << g2[*it].cut_class << std::endl;
+    }
+
+    std::cout << " =========== " << std::endl;
+
+    auto min_cut2_boost = compute_min_cut_boost(g2, 0, 6);
+
+    vertices2 = boost::vertices(g2);
+
+    for (auto &it = vertices2.first; it != vertices2.second; it++) {
+        std::cout << *it << " " << g2[*it].cut_class << std::endl;
+    }
+
+    std::cout << " =========== " << std::endl;
 
     auto edges2 = boost::edges(g2);
     for (auto &it = edges2.first; it != edges2.second; it++) {
@@ -112,6 +153,8 @@ int main() {
     }
 
     std::cout << "Value of min cut : " << min_cut2 << std::endl;
+
+    std::cout << "Result from boost : " << min_cut2_boost << std::endl;
 
     std::cout << "Press key to continue ";
     std::cin.get();
@@ -122,6 +165,7 @@ int main() {
 
     auto g3 = test_pr3();
     auto min_cut3 = compute_min_cut(g3, 0, 4);
+    auto min_cut3_boost = compute_min_cut_boost(g3, 0, 4);
 
     auto edges3 = boost::edges(g3);
     for (auto &it = edges3.first; it != edges3.second; it++) {
@@ -129,6 +173,8 @@ int main() {
     }
 
     std::cout << "Value of min cut : " << min_cut3 << std::endl;
+
+    std::cout << "Result from boost : " << min_cut3_boost << std::endl;
 
     return 0;
 }
