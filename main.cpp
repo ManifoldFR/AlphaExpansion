@@ -15,7 +15,7 @@
  * argv[0] nodes/edges folder path
  * 
  */
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 	using namespace std;
 	string folder_path(argv[1]);
@@ -69,8 +69,18 @@ int main(int argc, char **argv)
 	printf("Alpha expansion done.\n");
 	flush(o);
 
-	// Call python code to check if the results are good
-	system("python check_labels.py");
+	// check if second argument exists
+	if (argc > 2)
+	{
+		string flag(argv[2]);
+		bool check_coherence = (flag == "--check");
+		if (check_coherence)
+		{
+			// Call python code to check if the results are good
+			system("python check_labels.py");
+		}
+	}
+
 
 	return 0;
 }

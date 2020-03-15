@@ -28,9 +28,10 @@ nodes.txt
 edges.txt
 ```
 
-**Example** Running with the data files at the root:
+
+If you have a reference labels file named `label_ref.txt`, you can have the program check the coherence by using the `--check` flag:
 ```bash
-./Main .
+./Main path/to/folder --check
 ```
 
 ### Application to semantic 3D point cloud segmentation
