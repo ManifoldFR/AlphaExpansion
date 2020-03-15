@@ -8,4 +8,5 @@ with open("labels.txt") as f:
 with open("label_ref.txt") as f:
     labels_true = np.array([int(i) for i in f.readlines()])
 
-print("No. of differences:", np.sum(np.abs(labels_predicted - labels_true)))
+num_diffs = np.sum(np.abs(labels_predicted - labels_true))
+print("No. of differences:", num_diffs)

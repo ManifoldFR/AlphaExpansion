@@ -66,7 +66,12 @@ int main(int argc, char **argv)
 	for(int i = 0; i<result.size();i++){
 		o<<result[i]+1<<"\n";
 	}
-	printf("Done.");
+	printf("Alpha expansion done.\n");
+	flush(o);
+
+	// Call python code to check if the results are good
+	system("python check_labels.py");
+
 	return 0;
 }
 
