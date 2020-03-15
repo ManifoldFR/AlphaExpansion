@@ -166,7 +166,7 @@ bool expansion(vector<int>& labels, vector<vector<int>> unaryPotential, vector<v
     for (int i = 0; i<unaryPotential[0].size(); i++){
         int localLabel = i;
 
-        std::cout << "Building graph ... " << std::endl;
+        std::cout << "Building graph to expand " << i << std::endl;
 
         G = buildGraph(localLabel, labels, unaryPotential, edges);
 
@@ -174,7 +174,7 @@ bool expansion(vector<int>& labels, vector<vector<int>> unaryPotential, vector<v
 
         std::cout << "Computing min cut" << std::endl;
 
-        compute_min_cut_boost(G, src, sk);
+        compute_min_cut(G, src, sk);
 
         std::cout << "Computing local labels" << std::endl;
 

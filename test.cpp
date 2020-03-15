@@ -95,7 +95,13 @@ int main() {
     for (auto &it = vertices.first; it != vertices.second; it++) {
         std::cout << *it << " " << g[*it].cut_class << std::endl;;
     }
+    
+    std::cout << " =========== " << std::endl;
 
+    auto edges = boost::edges(g);
+    for (auto &it = edges.first; it != edges.second; it++) {
+        std::cout << source(*it, g) << " " << target(*it, g) << " " << g[*it].flow << "/" << g[*it].capacity << std::endl;
+    }
     std::cout << " =========== " << std::endl;
 
     auto min_cut_boost = compute_min_cut_boost(g, 0, 5);
@@ -104,13 +110,6 @@ int main() {
     
     for (auto &it2 = vertices.first; it2 != vertices.second; it2++) {
         std::cout << *it2 << " " << g[*it2].cut_class << std::endl;;
-    }
-
-    std::cout << " =========== " << std::endl;
-
-    auto edges = boost::edges(g);
-    for (auto &it = edges.first; it != edges.second; it++) {
-        std::cout << source(*it, g) << " " << target(*it, g) << " " << g[*it].flow << "/" << g[*it].capacity << std::endl;
     }
 
     std::cout << " =========== " << std::endl;   

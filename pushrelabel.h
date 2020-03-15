@@ -161,96 +161,92 @@ bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::ve
 
     // Need a queue to store active vertices
     typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    std::queue<Vertex> q;
+    std::vector<Vertex> q;
+
     // Push neighbors of source into queue
-    auto src_neighs = boost::adjacent_vertices(src, g);
-    for (auto &it = src_neighs.first; it != src_neighs.second; it++)
+    for (auto it = 0; it < boost::num_vertices(g); it++)
     {
         // only push in queue the now active nodes (rest are useless)
-        if (is_active(g, *it, src, sink))
-            q.push(*it);
+        q.push_back(it);
+    }
+
+
+    // store all the neighbors 
+    std::vector<std::vector<Graph::vertex_descriptor>> neighbors; 
+    std::vector<Graph::vertex_descriptor> current_neighbor;
+
+    for (Graph::vertex_descriptor i = 0; i < boost::num_vertices(g); i++)
+    {
+        // remark : all vertices have neighbors
+        current_neighbor.push_back(0);
+        neighbors.push_back(std::vector<Graph::vertex_descriptor>());
+    
+        auto i_neighs = boost::adjacent_vertices(i, g);
+        for (auto &it = i_neighs.first; it != i_neighs.second; it++){
+            neighbors[i].push_back(*it);
+        }
     }
 
     bool continuer = true;
+    int index = 0;
 
     int push_count(0), relabel_count(0);
 
-    if (verbose) std::cout << "Source & sink are " << src << " & " << sink << std::endl;
+    std::cout << "Source & sink are " << src << " & " << sink << std::endl;
 
     // Loop invariant : any vertex that goes in the queue remains active until pushed out
     while (continuer)
     {
 
-        // Pop active vertex from queue
-        Graph::vertex_descriptor current = q.front();
-        if ( verbose ) std::cout << "cv " << current << " : "; 
-
+        Graph::vertex_descriptor current = q[index];
+        auto old_height = g[current].labeling;        
         auto current_neighs = boost::adjacent_vertices(current, g);
-        bool pushed = false;
 
-        bool can_push_to_sink = boost::edge(current, sink, g).second && can_push(g, current, sink);
+        // equivalent of discharge function
 
-        if (can_push_to_sink)
+        while (is_active(g, current, src, sink))
         {
-        
-            auto e = boost::edge(current, sink, g).first;
-            if (verbose) std::cout << " push to " << sink << ".old_flow=" << g[e].flow << ".excess_flow=" << g[current].excess_flow << ".capacity=" << g[e].capacity;
-            if (verbose) std::cout << ".residual flow to sink is " << get_residual(g[e]);
-            pushed = true;
-            push_count ++;
-            push(g, current, sink, src, sink);
-            if (verbose) std::cout << ". new_flow " << g[e].flow << ".new_excess_flow" << g[current].excess_flow << std::endl;
-        
-        }
-        
 
-        if (pushed == false) {
-            // loop over neighbors and find if one can be pushed
-            for (auto &it = current_neighs.first; it != current_neighs.second; it++)
-            {
-                if (!pushed && can_push(g, current, *it))
-                {
-                    pushed = true;
-                    auto e = edge(current, *it, g).first;
-                    if (verbose) std::cout << " push to " << *it << ".old_flow=" << g[e].flow << ".excess_flow=" << g[current].excess_flow << ".capacity=" << g[e].capacity;
-                    push_count ++;
-                    bool was_in_queue = is_active(g, *it, src, sink);
-                    push(g, current, *it, src, sink);
-                    if (verbose) std::cout << ". new_flow " << g[e].flow << ".new_excess_flow" << g[current].excess_flow << std::endl;
-                    // We never push the sink or the source into the queue
-                    if (!was_in_queue && is_active(g, *it, src, sink))
-                        q.push(*it);
-                }
+
+            // get next neighbor
+            auto neigh = neighbors[current][current_neighbor[current]];
+            
+            // relabel
+            if (current_neighbor[current] == neighbors[current].size()) {
+                relabel(g, current, src, sink);
+                relabel_count++;
+                current_neighbor[current] = 0;
+            }
+            else if(can_push(g, current, neigh)){
+                push(g, current, neigh, src, sink);
+                push_count++;
+            }
+            else {
+                current_neighbor[current] = ((current_neighbor[current] + 1) % (neighbors[current].size() + 1));
             }
         }
 
-        // if not pushed, we have to relabel the vertex
-        if (!pushed)
-        {
-            if (verbose) std::cout << ". relabel" << std::endl;
-            relabel(g, current, src, sink);
-            auto neighbors = boost::adjacent_vertices(current, g);
-            relabel_count++;
+        // put current on the front of the linked list 
+        if (g[current].labeling > old_height){
+            q.erase(q.begin()+index);
+            q.insert(q.begin(), current);
+            index = 0;
         }
+        
+        index++;
 
-        // Check if current vertex is no longer active
-        if (!is_active(g, current, src, sink))
-        {
-            q.pop();
-        }
+        // continuer ?
+        continuer = (index < q.size());
 
-        if (verbose) std::cin.get();
-
-        // quit if queue is empty
-        continuer = !q.empty();
     }
 
     std::cout << "Number of push and relabel done : " << push_count << " & " << relabel_count << std::endl;
 
     return true;
+
 }
 
-/// Using the maximum flow, computes the min cut and assign a class to each vertex
+
 void max_flow_to_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
 {
     typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
