@@ -12,6 +12,8 @@
 #include <queue>
 #include <boost/graph/visitors.hpp>
 #include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/push_relabel_max_flow.hpp>
+
 
 /// Definition of class Graph
 #include "graph.h"
@@ -279,6 +281,11 @@ long compute_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descr
     if (verbose)
         std::cout << "Computing push relabel ... " << std::endl;
 
+    std::cout << "Computing push relabel ... " << std::endl;
+
+    // auto edge_capacities = get(&EdgeProperties::capacity, g);
+    // auto edge_rev = get(boost::edge_reverse, g);
+    // push_relabel_max_flow(g, src, sink);
     push_relabel(g, src, sink, verbose);
 
     if (verbose)
