@@ -170,7 +170,8 @@ bool expansion(vector<int>& labels, vector<vector<int>> unaryPotential, vector<v
 
         std::cout << "Computing min cut" << std::endl;
 
-        compute_min_cut_boost(G, src, sk);
+        compute_min_cut(G, src, sk);
+        // compute_min_cut_boost(G, src, sk);
 
         std::cout << "Computing local labels" << std::endl;
 
