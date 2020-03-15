@@ -15,7 +15,7 @@ file(GLOB SOURCES
     pushrelabel.h
     graph.h)
 
-add_library(AlphaExpansion ${SOURCES})
+add_library(AlphaExpansion SHARED ${SOURCES})
 
 add_executable(Main main.cpp)
 add_executable(SmokeTest test.cpp)
