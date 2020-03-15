@@ -27,6 +27,15 @@ vector<int> buildLabels(const vector<vector<int>>& unaryPotential) {
     return labels;
 }
 
+/// Reparametrization for binary graph cuts.
+/// This algorithm ensures all capacities are non-negative.
+/// Book URL: http://www0.cs.ucl.ac.uk/external/s.prince/book/Algorithms.pdf
+void reparametrize(Graph& G)
+{
+
+}
+
+
 /// Build the graph for alpha expansion.
 /// See Simon J.D. Prince, "Computer Vision: Models, Learning, and Inference", p. 41
 /// Book URL: http://www0.cs.ucl.ac.uk/external/s.prince/book/Algorithms.pdf

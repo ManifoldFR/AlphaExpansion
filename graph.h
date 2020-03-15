@@ -51,8 +51,8 @@ void push_flow(const Graph::vertex_descriptor& v, const Graph::vertex_descriptor
 
 }
 
-// adds two anti-parallel edges to the graph. If second capacity is 0 or not provided, does not add reverse edge
-
+/// Adds two anti-parallel edges to the graph.
+/// If second capacity is 0 or not provided, does not add reverse edge
 void add_edge_clean(const Graph::vertex_descriptor& v, const Graph::vertex_descriptor& w, Graph& g, const int cap1, const int cap2 = 0)
 {
     const auto n = boost::num_vertices(g);
