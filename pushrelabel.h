@@ -12,6 +12,8 @@
 #include <queue>
 #include <boost/graph/visitors.hpp>
 #include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/push_relabel_max_flow.hpp>
+
 
 /// Definition of class Graph
 #include "graph.h"
@@ -25,12 +27,14 @@ inline bool is_active(
     Graph::vertex_descriptor src,
     Graph::vertex_descriptor sink)
 {
+
     bool not_src_sink = (v != src) && (v != sink);
 
     bool finite = std::isfinite(g[v].labeling);
     
     bool has_excess_flow = (g[v].excess_flow > 0);
     return not_src_sink && finite && has_excess_flow;
+
 }
 
 inline bool can_push(
@@ -39,7 +43,7 @@ inline bool can_push(
     Graph::vertex_descriptor w)
 {
     auto e = edge(v, w, g).first;
-    return (g[v].labeling == g[w].labeling + 1) && (get_residual(g[e]) > 0);
+    return (g[v].labeling == g[w].labeling + 1) && get_residual(g[e]) > 0;
 }
 
 // TODO : Function to identify to which neighbor we must push
@@ -52,19 +56,13 @@ void push(
     Graph::vertex_descriptor src,
     Graph::vertex_descriptor sink)
 {
-    auto e = edge(v, w, g).first;
+    auto edge = boost::edge(v, w, g).first;
 
-    int residual = get_residual(g[e]);
+    int residual = get_residual(g[edge]);
 
     int delta = std::min(g[v].excess_flow, residual);
 
-    g[e].flow += delta;
-
-    auto e_rev = edge(w, v, g).first;
-    g[e_rev].flow -= delta;
-
-    g[v].excess_flow -= delta;
-    g[w].excess_flow += delta;
+    push_flow(v, w, g, delta);
 }
 
 /// Relabel operation on the graph.
@@ -151,7 +149,9 @@ void init_labels_smart(Graph &g, const Graph::vertex_descriptor& src, const Grap
 }
 
 /// Applies push relabel for a given graph to compute maximum flow
-bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sink)
+/// This function should not modify any adjacency list (cf. https://www.boost.org/doc/libs/1_37_0/libs/graph/doc/adjacency_list.html)
+
+bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sink, bool verbose = true)
 {
 
     // Push flow from source to its neighbors
@@ -166,44 +166,68 @@ bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::ve
     auto src_neighs = boost::adjacent_vertices(src, g);
     for (auto &it = src_neighs.first; it != src_neighs.second; it++)
     {
-        q.push(*it);
+        // only push in queue the now active nodes (rest are useless)
+        if (is_active(g, *it, src, sink))
+            q.push(*it);
     }
 
     bool continuer = true;
 
     int push_count(0), relabel_count(0);
 
+    if (verbose) std::cout << "Source & sink are " << src << " & " << sink << std::endl;
+
     // Loop invariant : any vertex that goes in the queue remains active until pushed out
     while (continuer)
     {
 
-        std::cout << push_count << " & " << relabel_count << std::endl;
-
         // Pop active vertex from queue
         Graph::vertex_descriptor current = q.front();
+        if ( verbose ) std::cout << "cv " << current << " : "; 
 
         auto current_neighs = boost::adjacent_vertices(current, g);
         bool pushed = false;
-        // loop over neighbors and find if one can be pushed
-        for (auto &it = current_neighs.first; it != current_neighs.second; it++)
+
+        bool can_push_to_sink = boost::edge(current, sink, g).second && can_push(g, current, sink);
+
+        if (can_push_to_sink)
         {
-            auto e = edge(current, *it, g).first;
-            if (can_push(g, current, *it))
+        
+            auto e = boost::edge(current, sink, g).first;
+            if (verbose) std::cout << " push to " << sink << ".old_flow=" << g[e].flow << ".excess_flow=" << g[current].excess_flow << ".capacity=" << g[e].capacity;
+            if (verbose) std::cout << ".residual flow to sink is " << get_residual(g[e]);
+            pushed = true;
+            push_count ++;
+            push(g, current, sink, src, sink);
+            if (verbose) std::cout << ". new_flow " << g[e].flow << ".new_excess_flow" << g[current].excess_flow << std::endl;
+        
+        }
+        
+
+        if (pushed == false) {
+            // loop over neighbors and find if one can be pushed
+            for (auto &it = current_neighs.first; it != current_neighs.second; it++)
             {
-                pushed = true;
-                push_count ++;
-                bool was_in_queue = is_active(g, *it, src, sink);
-                push(g, current, *it, src, sink);
-                // We never push the sink or the source into the queue
-                if (!was_in_queue && is_active(g, *it, src, sink))
-                    q.push(*it);
-                break;
+                if (!pushed && can_push(g, current, *it))
+                {
+                    pushed = true;
+                    auto e = edge(current, *it, g).first;
+                    if (verbose) std::cout << " push to " << *it << ".old_flow=" << g[e].flow << ".excess_flow=" << g[current].excess_flow << ".capacity=" << g[e].capacity;
+                    push_count ++;
+                    bool was_in_queue = is_active(g, *it, src, sink);
+                    push(g, current, *it, src, sink);
+                    if (verbose) std::cout << ". new_flow " << g[e].flow << ".new_excess_flow" << g[current].excess_flow << std::endl;
+                    // We never push the sink or the source into the queue
+                    if (!was_in_queue && is_active(g, *it, src, sink))
+                        q.push(*it);
+                }
             }
         }
 
         // if not pushed, we have to relabel the vertex
         if (!pushed)
         {
+            if (verbose) std::cout << ". relabel" << std::endl;
             relabel(g, current, src, sink);
             auto neighbors = boost::adjacent_vertices(current, g);
             relabel_count++;
@@ -214,6 +238,8 @@ bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::ve
         {
             q.pop();
         }
+
+        if (verbose) std::cin.get();
 
         // quit if queue is empty
         continuer = !q.empty();
@@ -235,7 +261,7 @@ void max_flow_to_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_d
     for (auto &it = vs.first; it != vs.second; it++)
         g[*it].cut_class = 1;
 
-    q.push(vertex(0, g));
+    q.push(vertex(src, g));
     while (!q.empty()) {
         auto next = q.front();
         q.pop();
@@ -245,7 +271,7 @@ void max_flow_to_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_d
         auto neighs = adjacent_vertices(next, g);
         for (auto &it = neighs.first; it != neighs.second; it++) {
             auto e = edge(next, *it, g).first;
-            if ((g[e].capacity - g[e].flow > 0) && (g[*it].cut_class == 1)){
+            if ((get_residual(g[e]) > 0) && (g[*it].cut_class == 1)){
                 q.push(*it);
             }
         }
@@ -253,19 +279,88 @@ void max_flow_to_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_d
 }
 
 // Calls push_relabel and max_flow_to_min_cut to compute min cut from scratch
-void compute_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+// returns the value of the min cut
+long compute_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink, bool verbose = false)
 {
+    if (verbose)
+        std::cout << "Computing push relabel ... " << std::endl;
 
     std::cout << "Computing push relabel ... " << std::endl;
 
-    push_relabel(g, src, sink);
+    // auto edge_capacities = get(&EdgeProperties::capacity, g);
+    // auto edge_rev = get(boost::edge_reverse, g);
+    // push_relabel_max_flow(g, src, sink);
+    push_relabel(g, src, sink, verbose);
 
-    std::cout << "Computing min cut ... " <<  std::endl;
+    if (verbose)
+        std::cout << "Computing min cut ... " <<  std::endl;
 
     max_flow_to_min_cut(g, src, sink);
 
-    std::cout << "Finished computing min cut" << std::endl;
+    if (verbose)
+        std::cout << "Finished computing min cut" << std::endl;
 
+    long min_cut = 0;
+    auto edges = boost::edges(g);
+    for(auto &it = edges.first; it != edges.second; it++) {
+        auto v(source(*it, g)), w(target(*it, g));
+        if (g[v].cut_class == 0 && g[w].cut_class == 1)
+            min_cut += g[*it].capacity;
+    }
+
+    return min_cut;
 }
 
+long push_relabel_boost_version(BoostGraph& bg, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+{
+
+    auto cap_map = get(&BoostEdgeProperties::capacity, bg);
+    auto res_cap_map = get(&BoostEdgeProperties::residual_capacity, bg);
+    auto rev_map = get(&BoostEdgeProperties::reverse, bg);
+    auto indx_map = get(vertex_index, bg);
+
+    long flow =  boost::push_relabel_max_flow(bg, src, sink, cap_map, res_cap_map, rev_map, indx_map);
+
+    return flow;
+}
+
+
+/// Computes the min cut and returns its value
+void max_flow_to_min_cut_boost(Graph& g, const BoostGraph& bg,  Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+{
+    auto num_verts = boost::num_vertices(bg);
+
+    // Copy capacity into old graph
+    for (size_t i = 0; i < num_verts; i++)
+    {
+        auto neighs = boost::adjacent_vertices(i, bg);
+        for (auto &j = neighs.first; j != neighs.second; j++)
+        {
+            auto edge = boost::edge(i, *j, g).first;
+            auto b_edge = boost::edge(i, *j, bg).first;
+
+            g[edge].flow = (bg[b_edge].capacity - bg[b_edge].residual_capacity);
+        }
+    }
+
+    max_flow_to_min_cut(g, src, sink);
+}
+
+long compute_min_cut_boost(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
+{
+
+    std::cout << "  Converting graph to boost graph" << std::endl;
+    
+    auto bg = graph_to_boost_graph(g);
+
+    std::cout << "  Computing push relabel w/ boost" << std::endl;
+
+    long flow = push_relabel_boost_version(bg, src, sink);
+
+    std::cout << "  Computing min cut from push relabel result" << std::endl;
+
+    max_flow_to_min_cut_boost(g, bg, src, sink);
+
+    return flow;
+}
 } // namespace

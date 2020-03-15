@@ -15,7 +15,7 @@
  * argv[0] nodes/edges folder path
  * 
  */
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 	using namespace std;
 	string folder_path(argv[1]);
@@ -31,12 +31,12 @@ int main(int argc, char **argv)
 	while (infile2 >> a >> b >> c >> d >> e >> f)
 	{
         vector<int> local_proba;
-        local_proba.push_back(100-a);
-        local_proba.push_back(100-b);
-        local_proba.push_back(100-c);
-        local_proba.push_back(100-d);
-        local_proba.push_back(100-e);
-        local_proba.push_back(100-f);
+        local_proba.push_back(-a);
+        local_proba.push_back(-b);
+        local_proba.push_back(-c);
+        local_proba.push_back(-d);
+        local_proba.push_back(-e);
+        local_proba.push_back(-f);
         probabilites.push_back(local_proba);
 	}
 
@@ -66,7 +66,22 @@ int main(int argc, char **argv)
 	for(int i = 0; i<result.size();i++){
 		o<<result[i]+1<<"\n";
 	}
-	printf("Done.");
+	printf("Alpha expansion done.\n");
+	flush(o);
+
+	// check if second argument exists
+	if (argc > 2)
+	{
+		string flag(argv[2]);
+		bool check_coherence = (flag == "--check");
+		if (check_coherence)
+		{
+			// Call python code to check if the results are good
+			system("python check_labels.py");
+		}
+	}
+
+
 	return 0;
 }
 

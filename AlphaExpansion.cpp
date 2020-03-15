@@ -8,7 +8,7 @@
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include<boost/range/numeric.hpp>
+#include <boost/range/numeric.hpp>
 
 #include "graph.h"
 #include "pushrelabel.h"
@@ -28,123 +28,99 @@ vector<int> buildLabels(const vector<vector<int>>& unaryPotential) {
     return labels;
 }
 
-Graph buildGraph(const int label, const vector<int>& labels, const vector<vector<int>>& unaryPotential, vector<vector<int>> edges){
-    
-    // numberNodes is the number of "true" nodes, corresponding to data points
-    int numberNodes = unaryPotential.size();
+/// Reparametrization for binary graph cuts.
+/// This algorithm ensures all capacities are non-negative.
+/// Book URL: http://www0.cs.ucl.ac.uk/external/s.prince/book/Algorithms.pdf
+void reparametrize(Graph& G)
+{
 
-    // indices of sink and source
-    Graph::vertex_descriptor sink = numberNodes;
-    Graph::vertex_descriptor source = numberNodes + 1;
-    
+}
+
+
+/// Build the graph for alpha expansion.
+/// See Simon J.D. Prince, "Computer Vision: Models, Learning, and Inference", p. 41
+/// Book URL: http://www0.cs.ucl.ac.uk/external/s.prince/book/Algorithms.pdf
+Graph buildGraph(int label, const vector<int>& labels, const vector<vector<int>>& unaryPotential, const vector<vector<int>>& edges){
     //Initialize graph with approriate edges information
+    int numberNodes = labels.size();
+    
     Graph G(numberNodes + 2);
-
-    // Nodes indexed by n > numberNodes + 1 are intermediary nodes 
-    // added when two neighbors have different classes != label 
-
-    auto z = numberNodes + 2;
     
-    // first, add all edges to the graph, we'll change them later
+    int sink = numberNodes;
+    int source = sink + 1;
+    int new_node = source + 1;  // denoted z in the book
 
-    std::cout << "Adding all the edges " << std::endl;
-
-    for (int e = 0; e < edges.size(); e++) {
-        auto u(edges[e][0]), v(edges[e][1]);
-        boost::add_edge(u, v, {0, 0}, G);
-        boost::add_edge(v, u, {0, 0}, G);
-    }
-
-    int i = 0;
-    int inf = std::numeric_limits<int>::max();
-    // int inf = 10000;
-
-    // first, potentials w/ source and sink
-
-    std::cout << "Computing potentials w/ source and sink " << std::endl;
-
-    for (Graph::vertex_descriptor i = 0; i < numberNodes; i++) {
-
-        // add edge to source : weights are all w/ 'label'
-        boost::add_edge(source, i, {unaryPotential[i][label], 0}, G);
-        boost::add_edge(i, source, {0, 0}, G);
-
-        // add edge to sink : weight depends on current class
-        if (labels[i] == label)
-            boost::add_edge(i, sink, {inf, 0}, G);
-        else
-            boost::add_edge(i, sink, {unaryPotential[i][labels[i]], 0}, G);
-    
-        boost::add_edge(sink, i, {0, 0}, G);
-
-    }
-
-    for (Graph::vertex_descriptor i = 0; i < numberNodes; i++) {
-
-        auto neighs = boost::adjacent_vertices(i, G);
-        // contains neighbors on which add intermediary node
-        std::vector<int> to_add = std::vector<int>();     
-
-        for (auto &n = neighs.first; n != neighs.second; n++) {
-            // only consider inferior vertices (to not compute twice)
-            if ((*n == source) || (*n == sink) || (*n >= i))
-                continue;
-
-            if (labels[i] == label && labels[*n] == label)
-                continue;
-
-            auto edge = boost::edge(i, *n, G).first;
-            auto rev_edge = boost::edge(*n, i, G).first;
-
-            // 4 cases for inter-node weights
-            // Case 1 : one of them is alpha = 'label'
-            if (labels[i] == label){
-                G[edge].capacity = 100;
-            }
-            else if(labels[*n] == label) {
-                G[rev_edge].capacity = 100;
-            }
-            else if (labels[i] == labels[*n])
-            {
-                G[edge].capacity = 100;
-                G[rev_edge].capacity = 100;
-            }
-            else
-            {
-                to_add.push_back(*n);
-            }
-
+    for (int i = 0; i<edges.size(); i++){
+        int idxS = edges[i].at(0);
+        int idxT = edges[i].at(1);
+        if (labels.at(idxS) == labels.at(idxT) && labels.at(idxS) == label ){
+            // Case 1
+            ;
         }
-
-        // add relevant intermediary nodes
-        for (Graph::vertex_descriptor j = 0; j < to_add.size(); j++) {
-            auto n = to_add[j];
-
+        else if (labels.at(idxS) == labels.at(idxT) && labels.at(idxS) != label ){
+            // Case 3
+            add_edge_clean(idxS, idxT, G, 100, 100); // CAUTION
+            /*
+            boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
+            boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);         
+            */
+        }
+        else if (labels.at(idxS) == label){
+            // Case 2b
+            add_edge_clean(idxT, idxS, G, 100);
+            // boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
+        }
+        else if (labels.at(idxT) == label){
+            // Case 2a
+            add_edge_clean(idxS, idxT, G, 100);
+            // boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
+        }
+        else{
+            // Case 4
+            new_node = boost::num_vertices(G); // CAUTION
             boost::add_vertex(G);
-            boost::add_edge(i, z, {100, 0}, G);
-            boost::add_edge(z, i, {inf, 0}, G);
 
-            boost::add_edge(n, z, {100, 0}, G);
-            boost::add_edge(z, n, {inf, 0}, G);
+            add_edge_clean(idxS, new_node, G, 100, BIG_INTEGER); // CAUTION
+            add_edge_clean(idxT, new_node, G, 100, BIG_INTEGER); // CAUTION
+
+            /*
+            boost::add_edge(idxS, new_node, EdgeProperties{100,0}, G);
+            boost::add_edge(new_node, idxS, EdgeProperties{BIG_INTEGER,0}, G);
             
-            boost::add_edge(z, sink, {100, 0}, G);
-            boost::add_edge(sink, z, {0, 0}, G);
-            z++;
+            boost::add_edge(new_node, idxT, EdgeProperties{BIG_INTEGER,0}, G);
+            boost::add_edge(idxT, new_node, EdgeProperties{100,0}, G);
+            */
+
+            boost::add_edge(new_node, sink, EdgeProperties{100,0},  G);
+            /*
+            new_node++;
+            */
         }
-        
+    }
+
+    for (int i=0; i<unaryPotential.size(); i++){
+        if (labels.at(i) == label){ 
+            boost::add_edge(source, i, EdgeProperties{0,0}, G);
+            boost::add_edge(i, sink, EdgeProperties{BIG_INTEGER, 0}, G);
+        }
+        else{
+            int smallest = min(unaryPotential[i].at(label),unaryPotential[i].at(labels[i]));
+            boost::add_edge(source, i, EdgeProperties{unaryPotential[i].at(label) - smallest,0}, G);
+            boost::add_edge(i, sink, EdgeProperties{unaryPotential[i].at(labels[i]) - smallest, 0}, G);
+        }
     }
 
     return G;
 }
 
-vector<int> getLabel(Graph G, const vector<int>& labels, const int label, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sk){
+vector<int> getLabel(const Graph& G, vector<int> labels, int label, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sk){
     
     vector<int> new_labels;
     
     auto vs = vertices(G);
 
     for (auto &it = vs.first; it != vs.second; it++) {
-        if ((*it != src) && (*it != sk)){
+        if (*it < labels.size() && (*it != src) && (*it != sk)){
            new_labels.push_back(G[*it].cut_class * label + (1-G[*it].cut_class) * labels.at(*it));
         }
     }
@@ -152,7 +128,7 @@ vector<int> getLabel(Graph G, const vector<int>& labels, const int label, const 
     return new_labels;
 }
 
-void setLabel(vector<int>& oldLabels, vector<int>& newLabels){
+void setLabel(vector<int>& oldLabels, const vector<int>& newLabels){
     for (int i=0; i<oldLabels.size(); i++){
         oldLabels[i] = newLabels[i];
     }
@@ -193,10 +169,14 @@ bool expansion(vector<int>& labels, vector<vector<int>> unaryPotential, vector<v
         std::cout << "Building graph ... " << std::endl;
 
         G = buildGraph(localLabel, labels, unaryPotential, edges);
-        
-        std::cout << "Computing min cut ... " << std::endl;
-        
-        compute_min_cut(G, src, sk);
+
+        symmetrize_graph(G);
+
+        std::cout << "Computing min cut" << std::endl;
+
+        compute_min_cut_boost(G, src, sk);
+
+        std::cout << "Computing local labels" << std::endl;
 
         localLabels = getLabel(G, labels, localLabel, src, sk);
 
