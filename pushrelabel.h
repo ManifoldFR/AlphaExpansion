@@ -257,7 +257,7 @@ void max_flow_to_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_d
     for (auto &it = vs.first; it != vs.second; it++)
         g[*it].cut_class = 1;
 
-    q.push(vertex(0, g));
+    q.push(vertex(src, g));
     while (!q.empty()) {
         auto next = q.front();
         q.pop();
@@ -329,12 +329,12 @@ void max_flow_to_min_cut_boost(Graph& g, const BoostGraph& bg,  Graph::vertex_de
     // Copy capacity into old graph
     for (size_t i = 0; i < num_verts; i++)
     {
-        auto neighs = boost::adjacent_vertices(i, g);
+        auto neighs = boost::adjacent_vertices(i, bg);
         for (auto &j = neighs.first; j != neighs.second; j++)
         {
             auto edge = boost::edge(i, *j, g).first;
             auto b_edge = boost::edge(i, *j, bg).first;
-            
+
             g[edge].flow = (bg[b_edge].capacity - bg[b_edge].residual_capacity);
         }
     }
@@ -344,13 +344,19 @@ void max_flow_to_min_cut_boost(Graph& g, const BoostGraph& bg,  Graph::vertex_de
 
 long compute_min_cut_boost(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
 {
+
+    std::cout << "  Converting graph to boost graph" << std::endl;
     
     auto bg = graph_to_boost_graph(g);
+
+    std::cout << "  Computing push relabel w/ boost" << std::endl;
+
     long flow = push_relabel_boost_version(bg, src, sink);
+
+    std::cout << "  Computing min cut from push relabel result" << std::endl;
 
     max_flow_to_min_cut_boost(g, bg, src, sink);
 
     return flow;
 }
-
 } // namespace
