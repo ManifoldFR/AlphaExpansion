@@ -51,6 +51,18 @@ void push_flow(const Graph::vertex_descriptor& v, const Graph::vertex_descriptor
 
 }
 
+// adds two anti-parallel edges to the graph. If second capacity is 0 or not provided, does not add reverse edge
+
+void add_edge_clean(const Graph::vertex_descriptor& v, const Graph::vertex_descriptor& w, Graph& g, const int cap1, const int cap2 = 0)
+{
+    const auto n = boost::num_vertices(g);
+    boost::add_edge(v, w, EdgeProperties{cap1, 0}, g);
+    if (cap2 > 0) {
+        boost::add_edge(w, n, EdgeProperties{cap2, 0}, g);
+        boost::add_edge(n, v, EdgeProperties{cap2, 0}, g);
+    }
+}
+
 void symmetrize_graph(Graph& g)
 {
     auto edges = boost::edges(g);
@@ -64,11 +76,11 @@ void symmetrize_graph(Graph& g)
     }
 }
 
+
+// DO NOT USE YET : HAS BUGS
+
 void split_edges(Graph& g)
 {
-    // 1) Iterate on all edges. If we have two non zero antiparallel edges : 
-    // we split one of them into two edges w/ same capacity
-
     // Rmk : the graph g must be symmetric (cf. symmetrize_graph)
 
     const int n_verts = boost::num_vertices(g);
@@ -142,8 +154,10 @@ BoostGraph graph_to_boost_graph(const Graph& g)
         auto neighs = boost::adjacent_vertices(i, g);
         for (auto &it = neighs.first; it != neighs.second; it++)
         {
-            if (*it >= i) continue;
-            
+            if (*it >= i){
+                continue;
+            }
+
             auto edge = boost::edge(i, *it, g).first;
             auto rev_edge = boost::edge(*it, i, g).first;
 

@@ -46,8 +46,11 @@ Graph buildGraph(int label, const vector<int>& labels, const vector<vector<int>>
         }
         else if (labels.at(idxS) == labels.at(idxT) && labels.at(idxS) != label ){
             // Case 3
+            add_edge_clean(idxS, idxT, G, 100, 100); // CAUTION
+            /*
             boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
             boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);         
+            */
         }
         else if (labels.at(idxS) == label){
             // Case 2b
@@ -59,17 +62,29 @@ Graph buildGraph(int label, const vector<int>& labels, const vector<vector<int>>
         }
         else{
             // Case 4
+            new_node = boost::num_vertices(G); // CAUTION
+            boost::add_vertex(G);
+
+            add_edge_clean(idxS, new_node, G, 100, BIG_INTEGER); // CAUTION
+            add_edge_clean(idxT, new_node, G, 100, BIG_INTEGER); // CAUTION
+
+            /*
             boost::add_edge(idxS, new_node, EdgeProperties{100,0}, G);
             boost::add_edge(new_node, idxS, EdgeProperties{BIG_INTEGER,0}, G);
+            
             boost::add_edge(new_node, idxT, EdgeProperties{BIG_INTEGER,0}, G);
             boost::add_edge(idxT, new_node, EdgeProperties{100,0}, G);
+            */
+
             boost::add_edge(new_node, sink, EdgeProperties{100,0},  G);
+            /*
             new_node++;
+            */
         }
     }
 
     for (int i=0; i<unaryPotential.size(); i++){
-        if (labels.at(i) == label){
+        if (labels.at(i) == label){           
             boost::add_edge(source, i, EdgeProperties{0,0}, G);
             boost::add_edge(i, sink, EdgeProperties{BIG_INTEGER, 0}, G);
         }
@@ -137,8 +152,10 @@ bool expansion(vector<int>& labels, vector<vector<int>> unaryPotential, vector<v
     for (int i=0; i<unaryPotential[0].size(); i++){
         int localLabel = i;
         G = buildGraph(localLabel, labels, unaryPotential, edges);
+
         symmetrize_graph(G);
-        compute_min_cut(G, src, sk);
+
+        compute_min_cut_boost(G, src, sk);
 
         localLabels = getLabel(G, labels, localLabel, src, sk);
 
