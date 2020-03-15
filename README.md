@@ -28,9 +28,10 @@ nodes.txt
 edges.txt
 ```
 
-Run with the files at the root:
+
+If you have a reference labels file named `label_ref.txt`, you can have the program check the coherence by using the `--check` flag:
 ```bash
-./Main .
+./Main path/to/folder --check
 ```
 
 ## Python bindings
@@ -42,7 +43,14 @@ python setup.py build_ext  # with option --inplace for a local build
 ```
 This requires Pybind11.
 
+## Application to semantic 3D point cloud segmentation
+
+The data files (unary potentials and list of edges) included in this repository are generated in the context of a 3D point cloud classification challenge: its code can be found at https://github.com/JulesSanchez/npm3d-challenge. The soft labels are generated using the XGBoost algorithm with handcrafted input features (local covariance and shape features).
+
+More details on the challenge can be found here: https://npm3d.fr/benchmark-for-master-course-on-3d-point-clouds 
+
 
 ## References
 * https://hal.inria.fr/file/index/docid/617524/filename/sample2e.pdf
 * http://akira.ruc.dk/~keld/teaching/algoritmedesign_f03/Artikler/08/Goldberg88.pdf 
+* Simon JD Prince, _Computer vision: models, learning, and inference_. URL: http://www0.cs.ucl.ac.uk/external/s.prince/book/Algorithms.pdf

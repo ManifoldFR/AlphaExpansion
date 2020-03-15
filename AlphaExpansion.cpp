@@ -27,16 +27,28 @@ vector<int> buildLabels(const vector<vector<int>>& unaryPotential) {
     return labels;
 }
 
+/// Reparametrization for binary graph cuts.
+/// This algorithm ensures all capacities are non-negative.
+/// Book URL: http://www0.cs.ucl.ac.uk/external/s.prince/book/Algorithms.pdf
+void reparametrize(Graph& G)
+{
+
+}
+
+
 /// Build the graph for alpha expansion.
 /// See Simon J.D. Prince, "Computer Vision: Models, Learning, and Inference", p. 41
 /// Book URL: http://www0.cs.ucl.ac.uk/external/s.prince/book/Algorithms.pdf
 Graph buildGraph(int label, const vector<int>& labels, const vector<vector<int>>& unaryPotential, const vector<vector<int>>& edges){
     //Initialize graph with approriate edges information
-    Graph G;
     int numberNodes = labels.size();
+    
+    Graph G(numberNodes + 2);
+    
     int sink = numberNodes;
     int source = sink + 1;
     int new_node = source + 1;  // denoted z in the book
+
     for (int i = 0; i<edges.size(); i++){
         int idxS = edges[i].at(0);
         int idxT = edges[i].at(1);
@@ -54,11 +66,13 @@ Graph buildGraph(int label, const vector<int>& labels, const vector<vector<int>>
         }
         else if (labels.at(idxS) == label){
             // Case 2b
-            boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
+            add_edge_clean(idxT, idxS, G, 100);
+            // boost::add_edge(idxT, idxS, EdgeProperties{100,0}, G);
         }
         else if (labels.at(idxT) == label){
             // Case 2a
-            boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
+            add_edge_clean(idxS, idxT, G, 100);
+            // boost::add_edge(idxS, idxT, EdgeProperties{100,0}, G);
         }
         else{
             // Case 4
@@ -84,7 +98,7 @@ Graph buildGraph(int label, const vector<int>& labels, const vector<vector<int>>
     }
 
     for (int i=0; i<unaryPotential.size(); i++){
-        if (labels.at(i) == label){           
+        if (labels.at(i) == label){ 
             boost::add_edge(source, i, EdgeProperties{0,0}, G);
             boost::add_edge(i, sink, EdgeProperties{BIG_INTEGER, 0}, G);
         }
@@ -93,20 +107,19 @@ Graph buildGraph(int label, const vector<int>& labels, const vector<vector<int>>
             boost::add_edge(source, i, EdgeProperties{unaryPotential[i].at(label) - smallest,0}, G);
             boost::add_edge(i, sink, EdgeProperties{unaryPotential[i].at(labels[i]) - smallest, 0}, G);
         }
-
     }
 
     return G;
 }
 
-vector<int> getLabel(Graph G, vector<int> labels, int label, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sk){
+vector<int> getLabel(const Graph& G, vector<int> labels, int label, const Graph::vertex_descriptor& src, const Graph::vertex_descriptor& sk){
     
     vector<int> new_labels;
     
     auto vs = vertices(G);
 
-    for (auto &it = vs.first; *it != labels.size(); it++) {
-        if ((*it != src) && (*it != sk)){
+    for (auto &it = vs.first; it != vs.second; it++) {
+        if (*it < labels.size() && (*it != src) && (*it != sk)){
            new_labels.push_back(G[*it].cut_class * label + (1-G[*it].cut_class) * labels.at(*it));
         }
     }
@@ -155,7 +168,12 @@ bool expansion(vector<int>& labels, vector<vector<int>> unaryPotential, vector<v
 
         symmetrize_graph(G);
 
-        compute_min_cut_boost(G, src, sk);
+        std::cout << "Computing min cut" << std::endl;
+
+        compute_min_cut(G, src, sk);
+        // compute_min_cut_boost(G, src, sk);
+
+        std::cout << "Computing local labels" << std::endl;
 
         localLabels = getLabel(G, labels, localLabel, src, sk);
 

@@ -4,5 +4,5 @@
 *.swp
 build/
 *.json
-data/
-labels.txt
+
+**/labels.txt
