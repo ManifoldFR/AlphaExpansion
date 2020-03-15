@@ -4,7 +4,7 @@ import pyalphaexpansion
 
 with open("../data/medium/nodes.txt") as f:
     node_data = f.readlines()
-    node_data = [list(map(int, line.split())) for line in node_data]
+    node_data = [[-int(i) for i in line.split()] for line in node_data]
 
 
 with open("../data/medium/edges.txt") as f:
