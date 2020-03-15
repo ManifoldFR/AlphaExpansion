@@ -1,3 +1,2 @@
-mkdir -p build && cd build/
-cmake ../
-make
+mkdir -p build
+cmake --build ./build --target all
