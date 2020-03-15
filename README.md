@@ -33,6 +33,14 @@ Run with the files at the root:
 ./Main .
 ```
 
+## Python bindings
+
+Once this root C++ library is built or installed (e.g. using `make install`), you can install Python bindings using setuptools:
+```bash
+cd python
+python setup.py build_ext  # with option --inplace for a local build
+```
+This requires Pybind11.
 
 
 ## References
