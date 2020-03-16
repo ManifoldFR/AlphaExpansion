@@ -192,7 +192,8 @@ bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::ve
 
     int push_count(0), relabel_count(0);
 
-    std::cout << "Source & sink are " << src << " & " << sink << std::endl;
+    if (verbose)
+        std::cout << "Source & sink are " << src << " & " << sink << std::endl;
 
     // Loop invariant : any vertex that goes in the queue remains active until pushed out
     while (continuer)
@@ -240,7 +241,7 @@ bool push_relabel(Graph &g, const Graph::vertex_descriptor& src, const Graph::ve
 
     }
 
-    std::cout << "Number of push and relabel done : " << push_count << " & " << relabel_count << std::endl;
+    // std::cout << "Number of push and relabel done : " << push_count << " & " << relabel_count << std::endl;
 
     return true;
 
@@ -280,8 +281,6 @@ long compute_min_cut(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descr
 {
     if (verbose)
         std::cout << "Computing push relabel ... " << std::endl;
-
-    std::cout << "Computing push relabel ... " << std::endl;
 
     // auto edge_capacities = get(&EdgeProperties::capacity, g);
     // auto edge_rev = get(boost::edge_reverse, g);
@@ -345,16 +344,13 @@ void max_flow_to_min_cut_boost(Graph& g, const BoostGraph& bg,  Graph::vertex_de
 long compute_min_cut_boost(Graph &g, Graph::vertex_descriptor src, Graph::vertex_descriptor sink)
 {
 
-    std::cout << "  Converting graph to boost graph" << std::endl;
-    
+    // std::cout << "  Converting graph to boost graph" << std::endl;
     auto bg = graph_to_boost_graph(g);
 
-    std::cout << "  Computing push relabel w/ boost" << std::endl;
-
+    // std::cout << "  Computing push relabel w/ boost" << std::endl;
     long flow = push_relabel_boost_version(bg, src, sink);
 
-    std::cout << "  Computing min cut from push relabel result" << std::endl;
-
+    // std::cout << "  Computing min cut from push relabel result" << std::endl;
     max_flow_to_min_cut_boost(g, bg, src, sink);
 
     return flow;
